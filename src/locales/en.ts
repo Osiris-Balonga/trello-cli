@@ -250,6 +250,35 @@ export default {
     failed: 'Search failed',
   },
 
+  // Board command
+  board: {
+    info: {
+      title: 'Board Information',
+      description: 'Description:',
+      statistics: 'Statistics:',
+      lists: 'Lists:',
+      members: 'Members:',
+      labels: 'Labels:',
+      cards: 'Cards:',
+      overdue: 'Overdue:',
+      lastSync: 'Last sync:',
+    },
+  },
+
+  // Due command
+  due: {
+    title: 'Cards with Due Dates',
+    overdue: 'OVERDUE',
+    today: 'TODAY',
+    thisWeek: 'THIS WEEK',
+    thisMonth: 'THIS MONTH',
+    later: 'LATER',
+    noCards: 'No cards with due dates',
+    daysAgo: '{{days}} days ago',
+    daysLeft: 'in {{days}} days',
+    total: 'Total: {{count}} cards with due dates',
+  },
+
   // Config command
   config: {
     get: {

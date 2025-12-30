@@ -11,6 +11,8 @@ import { createLabelsCommand } from './commands/labels.js';
 import { createConfigCommand } from './commands/config.js';
 import { createSyncCommand } from './commands/sync.js';
 import { createSearchCommand } from './commands/search.js';
+import { createDueCommand } from './commands/due.js';
+import { createBoardCommand } from './commands/board.js';
 import { initI18n } from './utils/i18n.js';
 
 await initI18n();
@@ -34,5 +36,7 @@ program.addCommand(createLabelsCommand());
 program.addCommand(createConfigCommand());
 program.addCommand(createSyncCommand());
 program.addCommand(createSearchCommand());
+program.addCommand(createDueCommand());
+program.addCommand(createBoardCommand());
 
 program.parse();

@@ -255,6 +255,35 @@ export default {
     failed: 'Échec de la recherche',
   },
 
+  // Board command
+  board: {
+    info: {
+      title: 'Informations du board',
+      description: 'Description :',
+      statistics: 'Statistiques :',
+      lists: 'Listes :',
+      members: 'Membres :',
+      labels: 'Labels :',
+      cards: 'Cartes :',
+      overdue: 'En retard :',
+      lastSync: 'Dernière sync :',
+    },
+  },
+
+  // Due command
+  due: {
+    title: 'Cartes avec échéances',
+    overdue: 'EN RETARD',
+    today: "AUJOURD'HUI",
+    thisWeek: 'CETTE SEMAINE',
+    thisMonth: 'CE MOIS',
+    later: 'PLUS TARD',
+    noCards: 'Aucune carte avec échéance',
+    daysAgo: 'il y a {{days}} jours',
+    daysLeft: 'dans {{days}} jours',
+    total: 'Total : {{count}} cartes avec échéance',
+  },
+
   // Config command
   config: {
     get: {
