@@ -17,6 +17,7 @@ import { createDeleteCommand } from './commands/delete.js';
 import { createArchiveCommand } from './commands/archive.js';
 import { createCommentCommand } from './commands/comment.js';
 import { createWatchCommand } from './commands/watch.js';
+import { createExportCommand } from './commands/export.js';
 import { initI18n } from './utils/i18n.js';
 
 await initI18n();
@@ -46,5 +47,6 @@ program.addCommand(createDeleteCommand());
 program.addCommand(createArchiveCommand());
 program.addCommand(createCommentCommand());
 program.addCommand(createWatchCommand());
+program.addCommand(createExportCommand());
 
 program.parse();

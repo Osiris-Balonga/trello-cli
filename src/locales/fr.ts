@@ -309,6 +309,15 @@ export default {
     invalidCard: 'Numéro de carte invalide. Doit être entre 1 et {{max}}.',
   },
 
+  // Export command
+  export: {
+    exporting: 'Export des cartes...',
+    success: 'Exporté vers {{file}}',
+    failed: "Échec de l'export",
+    invalidFormat: 'Format invalide. Formats supportés : {{formats}}',
+    invalidList: 'Liste invalide : {{list}}',
+  },
+
   // Board command
   board: {
     info: {

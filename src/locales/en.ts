@@ -304,6 +304,15 @@ export default {
     invalidCard: 'Invalid card number. Must be between 1 and {{max}}.',
   },
 
+  // Export command
+  export: {
+    exporting: 'Exporting cards...',
+    success: 'Exported to {{file}}',
+    failed: 'Export failed',
+    invalidFormat: 'Invalid format. Supported formats: {{formats}}',
+    invalidList: 'Invalid list: {{list}}',
+  },
+
   // Board command
   board: {
     info: {
