@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { input } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { config } from '../utils/config.js';
+import { t } from '../utils/i18n.js';
 
 export function createAuthCommand(): Command {
   const auth = new Command('auth');
@@ -33,8 +34,8 @@ function createOAuthCommand(): Command {
   oauth
     .description('Authenticate using OAuth (interactive)')
     .action(async () => {
-      console.log(chalk.yellow('OAuth authentication not yet implemented'));
-      console.log('Use: tt auth apikey');
+      console.log(chalk.yellow(t('auth.oauth.notImplemented')));
+      console.log(t('auth.oauth.useApiKey'));
     });
 
   return oauth;
@@ -53,29 +54,29 @@ function createStatusCommand(): Command {
 }
 
 async function handleApiKeyAuth(): Promise<void> {
-  console.log(chalk.bold('\n🔐 Trello API Key Authentication\n'));
-  console.log('To obtain your API Key and Token:');
-  console.log('1. Open: https://trello.com/app-key');
-  console.log('2. Copy your API Key');
-  console.log('3. Click on "Token" to generate a token');
-  console.log('4. Authorize access');
-  console.log('5. Copy the generated token\n');
+  console.log(chalk.bold(`\n🔐 ${t('auth.title')}\n`));
+  console.log(t('auth.instructions.intro'));
+  console.log(t('auth.instructions.step1'));
+  console.log(t('auth.instructions.step2'));
+  console.log(t('auth.instructions.step3'));
+  console.log(t('auth.instructions.step4'));
+  console.log(t('auth.instructions.step5') + '\n');
 
   const apiKey = await input({
-    message: 'Enter your API Key:',
+    message: t('auth.prompts.apiKey'),
     validate: (value) => {
       if (!value || value.trim().length === 0) {
-        return 'API Key is required';
+        return t('auth.validation.apiKeyRequired');
       }
       return true;
     },
   });
 
   const token = await input({
-    message: 'Enter your Token:',
+    message: t('auth.prompts.token'),
     validate: (value) => {
       if (!value || value.trim().length === 0) {
-        return 'Token is required';
+        return t('auth.validation.tokenRequired');
       }
       return true;
     },
@@ -83,32 +84,32 @@ async function handleApiKeyAuth(): Promise<void> {
 
   await config.setApiKeyAuth(apiKey.trim(), token.trim());
 
-  console.log(chalk.green('\n✓ API Key configured successfully'));
-  console.log(chalk.gray(`Config saved to: ${config.getPath()}\n`));
+  console.log(chalk.green(`\n✓ ${t('auth.success')}`));
+  console.log(chalk.gray(t('auth.configSaved', { path: config.getPath() }) + '\n'));
 }
 
 async function handleAuthStatus(): Promise<void> {
   const isAuth = await config.isAuthenticated();
   const mode = config.getAuthMode();
 
-  console.log(chalk.bold('\n🔐 Authentication Status\n'));
+  console.log(chalk.bold(`\n🔐 ${t('auth.status.title')}\n`));
 
   if (!isAuth) {
-    console.log(chalk.red('✗ Not authenticated'));
-    console.log(chalk.gray('Run: tt auth apikey\n'));
+    console.log(chalk.red(`✗ ${t('auth.status.notAuthenticated')}`));
+    console.log(chalk.gray(t('auth.status.runAuth') + '\n'));
     return;
   }
 
-  console.log(chalk.green('✓ Authenticated'));
-  console.log(`Mode: ${mode}`);
+  console.log(chalk.green(`✓ ${t('auth.status.authenticated')}`));
+  console.log(t('auth.status.mode', { mode }));
 
   if (mode === 'apikey') {
     const auth = await config.getApiKeyAuth();
     if (auth) {
-      console.log(`API Key: ${auth.key.slice(0, 8)}...`);
-      console.log(`Token: ${auth.token.slice(0, 8)}...`);
+      console.log(t('auth.status.apiKey', { key: auth.key.slice(0, 8) }));
+      console.log(t('auth.status.token', { token: auth.token.slice(0, 8) }));
     }
   }
 
-  console.log(chalk.gray(`\nConfig: ${config.getPath()}\n`));
+  console.log(chalk.gray('\n' + t('auth.status.config', { path: config.getPath() }) + '\n'));
 }

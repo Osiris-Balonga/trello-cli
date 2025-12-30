@@ -8,6 +8,10 @@ import { createShowCommand } from './commands/show.js';
 import { createUpdateCommand } from './commands/update.js';
 import { createMembersCommand } from './commands/members.js';
 import { createLabelsCommand } from './commands/labels.js';
+import { createConfigCommand } from './commands/config.js';
+import { initI18n } from './utils/i18n.js';
+
+await initI18n();
 
 const program = new Command();
 
@@ -25,5 +29,6 @@ program.addCommand(createShowCommand());
 program.addCommand(createUpdateCommand());
 program.addCommand(createMembersCommand());
 program.addCommand(createLabelsCommand());
+program.addCommand(createConfigCommand());
 
 program.parse();
