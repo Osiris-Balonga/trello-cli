@@ -255,6 +255,19 @@ export default {
     failed: 'Échec de la recherche',
   },
 
+  // Delete command
+  delete: {
+    warning: 'Attention : Cette action supprimera définitivement la carte !',
+    confirm: 'Êtes-vous sûr de vouloir supprimer cette carte ?',
+    cancelled: 'Suppression annulée.',
+    deleting: 'Suppression de la carte...',
+    success: 'Carte supprimée : "{{name}}"',
+    failed: 'Échec de la suppression',
+    invalidCard: 'Numéro de carte invalide. Doit être entre 1 et {{max}}.',
+    cardLabel: 'Carte :',
+    listLabel: 'Liste :',
+  },
+
   // Board command
   board: {
     info: {

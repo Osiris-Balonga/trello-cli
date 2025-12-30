@@ -13,6 +13,7 @@ import { createSyncCommand } from './commands/sync.js';
 import { createSearchCommand } from './commands/search.js';
 import { createDueCommand } from './commands/due.js';
 import { createBoardCommand } from './commands/board.js';
+import { createDeleteCommand } from './commands/delete.js';
 import { initI18n } from './utils/i18n.js';
 
 await initI18n();
@@ -38,5 +39,6 @@ program.addCommand(createSyncCommand());
 program.addCommand(createSearchCommand());
 program.addCommand(createDueCommand());
 program.addCommand(createBoardCommand());
+program.addCommand(createDeleteCommand());
 
 program.parse();

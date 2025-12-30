@@ -250,6 +250,19 @@ export default {
     failed: 'Search failed',
   },
 
+  // Delete command
+  delete: {
+    warning: 'Warning: This will permanently delete the card!',
+    confirm: 'Are you sure you want to delete this card?',
+    cancelled: 'Deletion cancelled.',
+    deleting: 'Deleting card...',
+    success: 'Card deleted: "{{name}}"',
+    failed: 'Failed to delete card',
+    invalidCard: 'Invalid card number. Must be between 1 and {{max}}.',
+    cardLabel: 'Card:',
+    listLabel: 'List:',
+  },
+
   // Board command
   board: {
     info: {
