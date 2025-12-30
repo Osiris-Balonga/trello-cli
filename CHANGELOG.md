@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **OAuth Authentication**
+  - OAuth Manual PIN flow for team/enterprise environments
+  - Organization API Key sharing (admin distributes key, users authorize individually)
+  - Scoped tokens per user, individually revocable
+
 ## [1.0.0] - 2025-12-30
 
 ### Added

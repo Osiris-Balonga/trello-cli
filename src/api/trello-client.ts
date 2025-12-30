@@ -44,7 +44,11 @@ export class TrelloClient {
             token: this.auth.token,
           };
         } else if (this.auth.type === 'oauth') {
-          config.headers.Authorization = `Bearer ${this.auth.accessToken}`;
+          config.params = {
+            ...config.params,
+            key: this.auth.orgApiKey,
+            token: this.auth.token,
+          };
         }
         return config;
       },

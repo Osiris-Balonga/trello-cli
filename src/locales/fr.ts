@@ -35,18 +35,29 @@ export default {
     success: 'Clé API configurée avec succès',
     configSaved: 'Configuration sauvegardée dans : {{path}}',
     status: {
-      title: "État de l'authentification",
+      title: 'État de l\'authentification',
       authenticated: 'Authentifié',
       notAuthenticated: 'Non authentifié',
       runAuth: 'Exécutez : tt auth apikey',
       mode: 'Mode : {{mode}}',
       apiKey: 'Clé API : {{key}}...',
+      orgApiKey: 'Clé API Org : {{key}}...',
       token: 'Token : {{token}}...',
       config: 'Configuration : {{path}}',
     },
     oauth: {
-      notImplemented: "L'authentification OAuth n'est pas encore implémentée",
-      useApiKey: 'Utilisez : tt auth apikey',
+      title: 'Authentification OAuth (pour équipes)',
+      apiKeyExplanation:
+        'OAuth nécessite la clé API de votre organisation (fournie par l\'admin).',
+      enterOrgApiKey: 'Entrez la clé API de l\'organisation :',
+      invalidApiKey: 'Format de clé API invalide (minimum 32 caractères)',
+      usingStoredApiKey: 'Utilisation de la clé API stockée : {{key}}...',
+      instructions:
+        '1. Ouvrez l\'URL ci-dessous dans votre navigateur\n2. Cliquez sur "Autoriser" pour autoriser Trello CLI\n3. Copiez le token affiché sur la page',
+      openBrowser: 'Ouvrir le navigateur automatiquement ?',
+      enterToken: 'Collez le token ici :',
+      invalidToken: 'Format de token invalide (64 caractères hexadécimaux attendus)',
+      success: 'Authentification OAuth configurée !',
     },
   },
 

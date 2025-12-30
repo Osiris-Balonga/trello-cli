@@ -1,8 +1,14 @@
 import { Command } from 'commander';
-import { input } from '@inquirer/prompts';
+import { input, confirm } from '@inquirer/prompts';
 import chalk from 'chalk';
+import open from 'open';
 import { config } from '../utils/config.js';
 import { t } from '../utils/i18n.js';
+import {
+  generateAuthorizationUrl,
+  validateToken,
+  validateApiKey,
+} from '../core/auth/index.js';
 
 export function createAuthCommand(): Command {
   const auth = new Command('auth');
@@ -32,13 +38,75 @@ function createOAuthCommand(): Command {
   const oauth = new Command('oauth');
 
   oauth
-    .description('Authenticate using OAuth (interactive)')
+    .description('Authenticate using OAuth (for teams)')
     .action(async () => {
-      console.log(chalk.yellow(t('auth.oauth.notImplemented')));
-      console.log(t('auth.oauth.useApiKey'));
+      await handleOAuthAuth();
     });
 
   return oauth;
+}
+
+async function handleOAuthAuth(): Promise<void> {
+  console.log(chalk.bold(`\n🔐 ${t('auth.oauth.title')}\n`));
+
+  let apiKey = await config.getOrgApiKey();
+
+  if (!apiKey) {
+    console.log(t('auth.oauth.apiKeyExplanation'));
+    console.log('');
+
+    apiKey = await input({
+      message: t('auth.oauth.enterOrgApiKey'),
+      validate: (value) => {
+        if (!validateApiKey(value)) {
+          return t('auth.oauth.invalidApiKey');
+        }
+        return true;
+      },
+    });
+
+    await config.setOrgApiKey(apiKey.trim());
+  } else {
+    console.log(
+      chalk.gray(t('auth.oauth.usingStoredApiKey', { key: apiKey.slice(0, 8) }))
+    );
+  }
+
+  const authUrl = generateAuthorizationUrl(apiKey, {
+    appName: 'Trello CLI',
+    scope: 'read,write',
+    expiration: 'never',
+  });
+
+  console.log('');
+  console.log(t('auth.oauth.instructions'));
+  console.log(chalk.cyan(`\n${authUrl}\n`));
+
+  const shouldOpen = await confirm({
+    message: t('auth.oauth.openBrowser'),
+    default: true,
+  });
+
+  if (shouldOpen) {
+    await open(authUrl);
+  }
+
+  const token = await input({
+    message: t('auth.oauth.enterToken'),
+    validate: (value) => {
+      if (!validateToken(value)) {
+        return t('auth.oauth.invalidToken');
+      }
+      return true;
+    },
+  });
+
+  await config.setOAuthAuth(token.trim(), apiKey.trim());
+
+  console.log(chalk.green(`\n✓ ${t('auth.oauth.success')}`));
+  console.log(
+    chalk.gray(t('auth.configSaved', { path: config.getPath() }) + '\n')
+  );
 }
 
 function createStatusCommand(): Command {
@@ -107,6 +175,12 @@ async function handleAuthStatus(): Promise<void> {
     const auth = await config.getApiKeyAuth();
     if (auth) {
       console.log(t('auth.status.apiKey', { key: auth.key.slice(0, 8) }));
+      console.log(t('auth.status.token', { token: auth.token.slice(0, 8) }));
+    }
+  } else if (mode === 'oauth') {
+    const auth = await config.getOAuthAuth();
+    if (auth) {
+      console.log(t('auth.status.orgApiKey', { key: auth.orgApiKey.slice(0, 8) }));
       console.log(t('auth.status.token', { token: auth.token.slice(0, 8) }));
     }
   }

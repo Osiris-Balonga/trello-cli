@@ -31,8 +31,8 @@ export async function createTrelloClient(): Promise<TrelloClient> {
     return new TrelloClient({
       auth: {
         type: 'oauth',
-        accessToken: auth.accessToken,
-        refreshToken: auth.refreshToken,
+        token: auth.token,
+        orgApiKey: auth.orgApiKey,
       },
     });
   }

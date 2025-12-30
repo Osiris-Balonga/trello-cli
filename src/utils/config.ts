@@ -64,30 +64,38 @@ class ConfigManager {
   }
 
   async getOAuthAuth(): Promise<{
-    accessToken: string;
-    refreshToken: string;
+    token: string;
+    orgApiKey: string;
   } | null> {
     if (!this.store.get('oauthConfigured')) {
       return null;
     }
 
-    const accessToken = await secureStore.getCredential('oauthAccessToken');
-    const refreshToken = await secureStore.getCredential('oauthRefreshToken');
+    const token = await secureStore.getCredential('oauthToken');
+    const orgApiKey = await secureStore.getCredential('oauthOrgApiKey');
 
-    if (!accessToken) {
+    if (!token || !orgApiKey) {
       this.store.set('oauthConfigured', false);
       return null;
     }
 
-    return { accessToken, refreshToken: refreshToken || '' };
+    return { token, orgApiKey };
   }
 
-  async setOAuthAuth(accessToken: string, refreshToken: string): Promise<void> {
-    await secureStore.setCredential('oauthAccessToken', accessToken);
-    await secureStore.setCredential('oauthRefreshToken', refreshToken);
+  async setOAuthAuth(token: string, orgApiKey: string): Promise<void> {
+    await secureStore.setCredential('oauthToken', token);
+    await secureStore.setCredential('oauthOrgApiKey', orgApiKey);
 
     this.store.set('oauthConfigured', true);
     this.store.set('authMode', 'oauth');
+  }
+
+  async getOrgApiKey(): Promise<string | null> {
+    return secureStore.getCredential('oauthOrgApiKey');
+  }
+
+  async setOrgApiKey(apiKey: string): Promise<void> {
+    await secureStore.setCredential('oauthOrgApiKey', apiKey);
   }
 
   async isAuthenticated(): Promise<boolean> {

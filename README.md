@@ -226,10 +226,20 @@ tt config set language fr    # Set language to French
 Manage authentication.
 
 ```bash
-tt auth apikey     # Configure API key authentication
+tt auth apikey     # Configure API key authentication (personal use)
+tt auth oauth      # OAuth flow for teams (shared org API key)
 tt auth status     # Check authentication status
-tt auth oauth      # OAuth flow (coming soon)
 ```
+
+#### OAuth for Teams
+
+OAuth is ideal for enterprise/team environments where you cannot distribute API tokens to everyone:
+
+1. **Admin** creates a Power-Up on [trello.com/power-ups/admin](https://trello.com/power-ups/admin)
+2. **Admin** shares only the API Key with team members
+3. **Each user** runs `tt auth oauth` and authorizes with their own Trello account
+
+This way, each user gets their own scoped token tied to their account, which can be revoked individually.
 
 ## Configuration
 

@@ -112,15 +112,23 @@ describe('TrelloClient', () => {
       );
     });
 
-    it('adds Authorization header for oauth auth', async () => {
+    it('adds key and token params for oauth auth (Manual PIN flow)', async () => {
       new TrelloClient({
-        auth: { type: 'oauth', accessToken: 'oauth_token' },
+        auth: { type: 'oauth', token: 'oauth_token', orgApiKey: 'org_api_key' },
       });
 
-      const config = { params: {}, headers: {} };
-      const result = (await requestInterceptor(config)) as { headers: { Authorization: string } };
+      const config = { params: { filter: 'open' } };
+      const result = await requestInterceptor(config);
 
-      expect(result.headers.Authorization).toBe('Bearer oauth_token');
+      expect(result).toEqual(
+        expect.objectContaining({
+          params: {
+            filter: 'open',
+            key: 'org_api_key',
+            token: 'oauth_token',
+          },
+        })
+      );
     });
   });
 

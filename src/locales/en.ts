@@ -41,12 +41,23 @@ export default {
       runAuth: 'Run: tt auth apikey',
       mode: 'Mode: {{mode}}',
       apiKey: 'API Key: {{key}}...',
+      orgApiKey: 'Org API Key: {{key}}...',
       token: 'Token: {{token}}...',
       config: 'Config: {{path}}',
     },
     oauth: {
-      notImplemented: 'OAuth authentication not yet implemented',
-      useApiKey: 'Use: tt auth apikey',
+      title: 'OAuth Authentication (for teams)',
+      apiKeyExplanation:
+        'OAuth requires your organization\'s API Key (shared by admin).',
+      enterOrgApiKey: 'Enter organization API Key:',
+      invalidApiKey: 'Invalid API Key format (minimum 32 characters)',
+      usingStoredApiKey: 'Using stored API Key: {{key}}...',
+      instructions:
+        '1. Open the URL below in your browser\n2. Click "Allow" to authorize Trello CLI\n3. Copy the token displayed on the page',
+      openBrowser: 'Open browser automatically?',
+      enterToken: 'Paste the token here:',
+      invalidToken: 'Invalid token format (expected 64 hex characters)',
+      success: 'OAuth authentication configured!',
     },
   },
 

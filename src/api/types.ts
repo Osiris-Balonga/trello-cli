@@ -2,8 +2,7 @@ export interface AuthConfig {
   type: 'apikey' | 'oauth';
   apiKey?: string;
   token?: string;
-  accessToken?: string;
-  refreshToken?: string;
+  orgApiKey?: string;
 }
 
 export interface TrelloConfig {
