@@ -46,7 +46,6 @@ class Logger {
     }
   }
 
-  // Méthodes publiques
   debug(message: string, ...args: unknown[]): void {
     this.log('debug', message, ...args);
   }
@@ -67,22 +66,18 @@ class Logger {
     this.log('error', message, ...args);
   }
 
-  // Affichage de titre/section
   title(message: string): void {
     console.log(chalk.bold(`\n${message}\n`));
   }
 
-  // Affichage de hint/aide
   hint(message: string): void {
     console.log(chalk.gray(message));
   }
 
-  // Ligne vide
   newline(): void {
     console.log('');
   }
 
-  // Configuration
   setDebug(enabled: boolean): void {
     this.debugMode = enabled;
   }
@@ -92,8 +87,6 @@ class Logger {
   }
 }
 
-// Instance singleton
 export const logger = new Logger();
 
-// Export de la classe pour les tests
 export { Logger };

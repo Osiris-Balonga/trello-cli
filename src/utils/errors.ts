@@ -9,13 +9,11 @@ export class TrelloError extends Error {
     super(message);
     this.name = 'TrelloError';
 
-    // Stack trace uniquement en développement (sécurité)
     if (process.env.NODE_ENV !== 'production') {
       Error.captureStackTrace(this, this.constructor);
     }
   }
 
-  // Format sécurisé pour l'affichage utilisateur
   toUserMessage(): string {
     return this.code ? `[${this.code}] ${this.message}` : this.message;
   }
@@ -33,7 +31,6 @@ export class TrelloAPIError extends TrelloError {
 
     super(message, 'API_ERROR', statusCode);
 
-    // Stocker les détails séparément (pas dans le message)
     if (axiosError.response?.data) {
       this.details = axiosError.response.data as Record<string, unknown>;
     }
