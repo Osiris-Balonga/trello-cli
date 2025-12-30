@@ -94,6 +94,10 @@ export default {
       titleTooLong: 'Title too long (max 500 characters)',
       invalidOptions: 'Invalid options:',
     },
+    git: {
+      useBranchTitle: 'Use branch name as title? "{{title}}"',
+      usingBranchTitle: 'Using title from branch name',
+    },
     creating: 'Creating card...',
     success: 'Card created: {{name}}',
     url: 'URL: {{url}}',

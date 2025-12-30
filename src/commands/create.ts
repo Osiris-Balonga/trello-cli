@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { input } from '@inquirer/prompts';
+import { input, confirm } from '@inquirer/prompts';
 import ora from 'ora';
 import chalk from 'chalk';
 import { loadCache } from '../utils/load-cache.js';
@@ -11,6 +11,8 @@ import {
 } from '../utils/validation.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { handleCommandError } from '../utils/error-handler.js';
+import { suggestCardTitleFromBranch } from '../core/git.js';
+import { t } from '../utils/i18n.js';
 import type { CreateCardParams } from '../api/types.js';
 
 export function createCreateCommand(): Command {
@@ -42,29 +44,45 @@ export function createCreateCommand(): Command {
 
         let cardTitle = title;
         if (!cardTitle) {
-          cardTitle = await input({
-            message: 'Card title:',
-            validate: (v) =>
-              v.trim().length > 0 ? true : 'Title required',
-          });
+          const suggestion = await suggestCardTitleFromBranch();
+
+          if (suggestion) {
+            const useSuggestion = await confirm({
+              message: t('create.git.useBranchTitle', { title: suggestion }),
+              default: true,
+            });
+
+            if (useSuggestion) {
+              cardTitle = suggestion;
+              console.log(chalk.gray(t('create.git.usingBranchTitle')));
+            }
+          }
+
+          if (!cardTitle) {
+            cardTitle = await input({
+              message: t('create.prompts.title'),
+              validate: (v) =>
+                v.trim().length > 0 ? true : t('create.validation.titleRequired'),
+            });
+          }
         }
 
         if (cardTitle.length > 500) {
           throw new TrelloValidationError(
-            'Title too long (max 500 characters)',
+            t('create.validation.titleTooLong'),
             'title'
           );
         }
 
         let desc = options.desc;
         if (!desc && !title) {
-          desc = await input({ message: 'Description (optional):' });
+          desc = await input({ message: t('create.prompts.description') });
         }
 
         const list = cache.getListByAlias(options.list);
         if (!list) {
           throw new TrelloError(
-            `List "${options.list}" not found in cache. Run "tt init" to refresh.`,
+            t('create.errors.listNotFound', { list: options.list }),
             'LIST_NOT_FOUND'
           );
         }
@@ -91,16 +109,22 @@ export function createCreateCommand(): Command {
           params.idMembers = resolver.resolveMembers(options.members);
         }
 
-        const spinner = ora('Creating card...').start();
+        const spinner = ora(t('create.creating')).start();
         const card = await client.cards.create(params as CreateCardParams);
-        spinner.succeed(`Card created: ${card.name}`);
+        spinner.succeed(t('create.success', { name: card.name }));
 
-        console.log(chalk.gray(`URL: ${card.shortUrl}`));
+        console.log(chalk.gray(t('create.url', { url: card.shortUrl })));
         if (params.idLabels?.length) {
-          console.log(chalk.gray(`Labels: ${options.labels?.join(', ')}`));
+          console.log(
+            chalk.gray(t('create.labels', { labels: options.labels?.join(', ') }))
+          );
         }
         if (params.idMembers?.length) {
-          console.log(chalk.gray(`Members: @${options.members?.join(', @')}`));
+          console.log(
+            chalk.gray(
+              t('create.members', { members: '@' + options.members?.join(', @') })
+            )
+          );
         }
       } catch (error) {
         handleCommandError(error);

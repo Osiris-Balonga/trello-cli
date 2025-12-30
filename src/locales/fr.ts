@@ -94,6 +94,10 @@ export default {
       titleTooLong: 'Titre trop long (max 500 caractères)',
       invalidOptions: 'Options invalides :',
     },
+    git: {
+      useBranchTitle: 'Utiliser le nom de la branche comme titre ? "{{title}}"',
+      usingBranchTitle: 'Titre extrait du nom de la branche',
+    },
     creating: 'Création de la carte...',
     success: 'Carte créée : {{name}}',
     url: 'URL : {{url}}',
