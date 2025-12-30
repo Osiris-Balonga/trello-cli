@@ -243,5 +243,33 @@ export default {
     unknownError: 'An unexpected error occurred.',
     cacheNotFound:
       'Project not initialized. Run "tt init" in your project directory.',
+    auth: {
+      title: 'Authentication error',
+    },
+    network: {
+      timeout: 'Request timed out',
+      offline: 'No internet connection',
+      retryHint: 'Check your connection and try again.',
+      checkConnection: 'Check your internet connection.',
+    },
+    rateLimit: {
+      title: 'API rate limit exceeded',
+      hint: 'Wait a few seconds and try again.',
+    },
+    validation: {
+      title: 'Validation error',
+      field: 'Field',
+    },
+    notFound: {
+      configHint: 'Check your configuration with: tt config',
+      syncHint: 'Or refresh the cache with: tt init',
+    },
+    api: {
+      title: 'Trello API error',
+    },
+    unexpected: {
+      title: 'Unexpected error',
+      debugHint: 'Set DEBUG=true for more details.',
+    },
   },
 } as const;

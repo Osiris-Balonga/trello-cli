@@ -19,6 +19,20 @@ export class TrelloError extends Error {
   }
 }
 
+export class TrelloNetworkError extends TrelloError {
+  constructor(
+    public readonly isTimeout: boolean = false,
+    public readonly isOffline: boolean = false
+  ) {
+    const message = isTimeout
+      ? 'Request timeout'
+      : isOffline
+        ? 'Network unavailable'
+        : 'Network error';
+    super(message, 'NETWORK_ERROR');
+  }
+}
+
 export class TrelloAPIError extends TrelloError {
   public readonly details?: Record<string, unknown>;
 

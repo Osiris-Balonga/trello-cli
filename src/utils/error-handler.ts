@@ -7,8 +7,10 @@ import {
   TrelloValidationError,
   TrelloRateLimitError,
   TrelloAPIError,
+  TrelloNetworkError,
 } from './errors.js';
 import { logger } from './logger.js';
+import { t } from './i18n.js';
 
 interface ErrorContext {
   command?: string;
@@ -22,38 +24,52 @@ export function handleCommandError(
   logger.newline();
 
   if (error instanceof TrelloAuthError) {
-    logger.error('Authentication error');
-    logger.info(error.message);
-    logger.hint('\nRun: tt auth apikey');
+    logger.error(t('errors.auth.title'));
+    logger.info(t('errors.notAuthenticated'));
+    logger.hint('\n' + t('auth.status.runAuth'));
+    process.exit(1);
+  }
+
+  if (error instanceof TrelloNetworkError) {
+    if (error.isTimeout) {
+      logger.error(t('errors.network.timeout'));
+      logger.hint('\n' + t('errors.network.retryHint'));
+    } else if (error.isOffline) {
+      logger.error(t('errors.network.offline'));
+      logger.hint('\n' + t('errors.network.checkConnection'));
+    } else {
+      logger.error(t('errors.networkError'));
+      logger.hint('\n' + t('errors.network.checkConnection'));
+    }
     process.exit(1);
   }
 
   if (error instanceof TrelloRateLimitError) {
-    logger.error('API rate limit exceeded');
+    logger.error(t('errors.rateLimit.title'));
     logger.info(error.message);
-    logger.hint('\nWait a few seconds and try again.');
+    logger.hint('\n' + t('errors.rateLimit.hint'));
     process.exit(1);
   }
 
   if (error instanceof TrelloValidationError) {
-    logger.error('Validation error');
+    logger.error(t('errors.validation.title'));
     logger.info(error.message);
     if (error.field) {
-      logger.hint(`\nField: ${error.field}`);
+      logger.hint(`\n${t('errors.validation.field')}: ${error.field}`);
     }
     process.exit(1);
   }
 
   if (error instanceof TrelloNotFoundError) {
     logger.error(error.message);
-    logger.hint('\nCheck your configuration with: tt config');
-    logger.hint('Or refresh the cache with: tt sync');
+    logger.hint('\n' + t('errors.notFound.configHint'));
+    logger.hint(t('errors.notFound.syncHint'));
     process.exit(1);
   }
 
   if (error instanceof TrelloAPIError) {
-    logger.error('Trello API error');
-    logger.info(`[${error.statusCode}] ${error.message}`);
+    logger.error(t('errors.api.title'));
+    logger.info(t('errors.apiError', { message: `[${error.statusCode}] ${error.message}` }));
 
     if (error.details && process.env.DEBUG) {
       logger.debug('Details:', error.details);
@@ -73,20 +89,20 @@ export function handleCommandError(
   }
 
   if (error instanceof Error) {
-    logger.error('Unexpected error');
+    logger.error(t('errors.unexpected.title'));
     logger.info(error.message);
 
     if (process.env.DEBUG === 'true' && error.stack) {
       logger.newline();
       console.error(chalk.gray(error.stack));
     } else {
-      logger.hint('\nSet DEBUG=true for more details.');
+      logger.hint('\n' + t('errors.unexpected.debugHint'));
     }
 
     process.exit(1);
   }
 
-  logger.error('Unknown error');
+  logger.error(t('errors.unknownError'));
   logger.info(String(error));
   process.exit(1);
 }

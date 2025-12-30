@@ -8,6 +8,7 @@ import {
   TrelloAPIError,
   TrelloAuthError,
   TrelloRateLimitError,
+  TrelloNetworkError,
 } from '../utils/errors.js';
 import { apiLimiter } from '../utils/rate-limiter.js';
 import { BoardsResource } from './resources/boards.js';
@@ -53,10 +54,17 @@ export class TrelloClient {
     this.api.interceptors.response.use(
       (response) => response,
       (error: AxiosError<{ message?: string }>) => {
-        if (error.response?.status === 401) {
+        if (!error.response) {
+          const isTimeout =
+            error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+          const isOffline =
+            error.code === 'ENOTFOUND' || error.code === 'ENETUNREACH';
+          throw new TrelloNetworkError(isTimeout, isOffline);
+        }
+        if (error.response.status === 401) {
           throw new TrelloAuthError();
         }
-        if (error.response?.status === 429) {
+        if (error.response.status === 429) {
           const retryAfter = error.response.headers['retry-after'];
           throw new TrelloRateLimitError(
             retryAfter ? parseInt(String(retryAfter), 10) : undefined
