@@ -1,0 +1,13 @@
+# Placeholder for demo.gif
+# Record a GIF showing:
+# 1. tt auth apikey
+# 2. tt init (board selection)
+# 3. tt create "New task"
+# 4. tt list
+# 5. tt move 1 doing
+#
+# Recommended tools:
+# - macOS: Kap (https://getkap.co)
+# - Windows: ScreenToGif (https://www.screentogif.com)
+# - Linux: Peek (https://github.com/phw/peek)
+# - Cross-platform: asciinema + svg-term-cli
