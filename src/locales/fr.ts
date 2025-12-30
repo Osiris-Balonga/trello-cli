@@ -318,6 +318,33 @@ export default {
     invalidList: 'Liste invalide : {{list}}',
   },
 
+  // Stats command
+  stats: {
+    loading: 'Chargement des statistiques...',
+    failed: 'Échec du chargement des statistiques',
+    memberNotFound: 'Membre non trouvé : @{{username}}',
+    title: 'Statistiques du board - {{name}}',
+    period: 'Période : {{days}} derniers jours',
+    member: 'Membre : @{{member}}',
+    cardsSection: 'Cartes',
+    total: 'Total',
+    created: 'Créées',
+    completed: 'Complétées',
+    archived: 'Archivées',
+    inProgress: 'En cours',
+    velocitySection: 'Vélocité',
+    avgCompletion: 'Complétion moyenne',
+    cardsPerWeek: 'cartes/semaine',
+    avgCycleTime: 'Temps de cycle moyen',
+    days: 'jours',
+    cards: 'cartes',
+    membersSection: 'Activité des membres',
+    labelsSection: 'Distribution des labels',
+    trendsSection: 'Tendances',
+    productivityVsLastPeriod: 'productivité vs période précédente',
+    completionRate: 'taux de complétion',
+  },
+
   // Board command
   board: {
     info: {

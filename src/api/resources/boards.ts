@@ -1,5 +1,5 @@
 import type { AxiosInstance } from 'axios';
-import type { Board } from '../types.js';
+import type { Board, TrelloAction } from '../types.js';
 
 export class BoardsResource {
   constructor(private api: AxiosInstance) {}
@@ -17,6 +17,17 @@ export class BoardsResource {
           filter: 'open',
         },
       }
+    );
+    return data;
+  }
+
+  async getActions(
+    boardId: string,
+    params?: { filter?: string; limit?: number }
+  ): Promise<TrelloAction[]> {
+    const { data } = await this.api.get<TrelloAction[]>(
+      `/boards/${boardId}/actions`,
+      { params }
     );
     return data;
   }
