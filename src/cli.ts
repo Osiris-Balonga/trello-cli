@@ -3,6 +3,7 @@ import { createAuthCommand } from './commands/auth.js';
 import { createInitCommand } from './commands/init.js';
 import { createListCommand } from './commands/list.js';
 import { createCreateCommand } from './commands/create.js';
+import { createMoveCommand } from './commands/move.js';
 
 const program = new Command();
 
@@ -15,5 +16,6 @@ program.addCommand(createAuthCommand());
 program.addCommand(createInitCommand());
 program.addCommand(createListCommand());
 program.addCommand(createCreateCommand());
+program.addCommand(createMoveCommand());
 
 program.parse();
