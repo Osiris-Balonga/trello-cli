@@ -4,6 +4,8 @@ import { createInitCommand } from './commands/init.js';
 import { createListCommand } from './commands/list.js';
 import { createCreateCommand } from './commands/create.js';
 import { createMoveCommand } from './commands/move.js';
+import { createShowCommand } from './commands/show.js';
+import { createUpdateCommand } from './commands/update.js';
 
 const program = new Command();
 
@@ -17,5 +19,7 @@ program.addCommand(createInitCommand());
 program.addCommand(createListCommand());
 program.addCommand(createCreateCommand());
 program.addCommand(createMoveCommand());
+program.addCommand(createShowCommand());
+program.addCommand(createUpdateCommand());
 
 program.parse();
