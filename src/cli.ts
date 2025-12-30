@@ -6,6 +6,8 @@ import { createCreateCommand } from './commands/create.js';
 import { createMoveCommand } from './commands/move.js';
 import { createShowCommand } from './commands/show.js';
 import { createUpdateCommand } from './commands/update.js';
+import { createMembersCommand } from './commands/members.js';
+import { createLabelsCommand } from './commands/labels.js';
 
 const program = new Command();
 
@@ -21,5 +23,7 @@ program.addCommand(createCreateCommand());
 program.addCommand(createMoveCommand());
 program.addCommand(createShowCommand());
 program.addCommand(createUpdateCommand());
+program.addCommand(createMembersCommand());
+program.addCommand(createLabelsCommand());
 
 program.parse();
