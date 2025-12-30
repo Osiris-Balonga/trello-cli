@@ -362,6 +362,25 @@ export default {
     usageHint: 'Usage : tt create --template <nom> "Titre de la carte"',
   },
 
+  // Batch command
+  batch: {
+    dryRun: 'Simulation (aucun changement)',
+    moving: 'Déplacement de {{count}} cartes...',
+    moveComplete: '{{success}} cartes déplacées ({{failed}} échecs)',
+    archiving: 'Archivage de {{count}} cartes...',
+    archiveComplete: '{{success}} cartes archivées ({{failed}} échecs)',
+    unarchiving: 'Désarchivage de {{count}} cartes...',
+    unarchiveComplete: '{{success}} cartes désarchivées ({{failed}} échecs)',
+    labeling: 'Mise à jour des labels sur {{count}} cartes...',
+    labelComplete: 'Label modifié sur {{success}} cartes ({{failed}} échecs)',
+    assigning: 'Mise à jour des assignations sur {{count}} cartes...',
+    assignComplete: 'Membre modifié sur {{success}} cartes ({{failed}} échecs)',
+    invalidCards: 'Numéros de cartes invalides : {{cards}}',
+    listNotFound: 'Liste non trouvée : {{list}}',
+    labelNotFound: 'Label non trouvé : {{label}}',
+    memberNotFound: 'Membre non trouvé : {{member}}',
+  },
+
   // Board command
   board: {
     info: {

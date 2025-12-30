@@ -357,6 +357,25 @@ export default {
     usageHint: 'Usage: tt create --template <name> "Card title"',
   },
 
+  // Batch command
+  batch: {
+    dryRun: 'Dry run (no changes)',
+    moving: 'Moving {{count}} cards...',
+    moveComplete: 'Moved {{success}} cards ({{failed}} failed)',
+    archiving: 'Archiving {{count}} cards...',
+    archiveComplete: 'Archived {{success}} cards ({{failed}} failed)',
+    unarchiving: 'Unarchiving {{count}} cards...',
+    unarchiveComplete: 'Unarchived {{success}} cards ({{failed}} failed)',
+    labeling: 'Updating labels on {{count}} cards...',
+    labelComplete: '{{action}}ed label on {{success}} cards ({{failed}} failed)',
+    assigning: 'Updating assignments on {{count}} cards...',
+    assignComplete: '{{action}}ed member on {{success}} cards ({{failed}} failed)',
+    invalidCards: 'Invalid card numbers: {{cards}}',
+    listNotFound: 'List not found: {{list}}',
+    labelNotFound: 'Label not found: {{label}}',
+    memberNotFound: 'Member not found: {{member}}',
+  },
+
   // Board command
   board: {
     info: {
