@@ -19,6 +19,7 @@ import { createCommentCommand } from './commands/comment.js';
 import { createWatchCommand } from './commands/watch.js';
 import { createExportCommand } from './commands/export.js';
 import { createStatsCommand } from './commands/stats.js';
+import { createTemplateCommand } from './commands/template.js';
 import { initI18n } from './utils/i18n.js';
 
 await initI18n();
@@ -50,5 +51,6 @@ program.addCommand(createCommentCommand());
 program.addCommand(createWatchCommand());
 program.addCommand(createExportCommand());
 program.addCommand(createStatsCommand());
+program.addCommand(createTemplateCommand());
 
 program.parse();

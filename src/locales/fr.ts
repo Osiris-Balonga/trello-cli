@@ -345,6 +345,23 @@ export default {
     completionRate: 'taux de complétion',
   },
 
+  // Template command
+  template: {
+    creating: 'Création du template "{{name}}"',
+    promptName: 'Nom du template :',
+    promptDescription: 'Modèle de description :',
+    promptLabels: 'Labels par défaut :',
+    promptList: 'Liste par défaut :',
+    created: 'Template "{{name}}" créé',
+    alreadyExists: 'Le template "{{name}}" existe déjà',
+    notFound: 'Template "{{name}}" non trouvé',
+    deleted: 'Template "{{name}}" supprimé',
+    listTitle: 'Templates disponibles',
+    noTemplates: 'Aucun template trouvé',
+    createHint: 'Créez-en un avec : tt template create <nom>',
+    usageHint: 'Usage : tt create --template <nom> "Titre de la carte"',
+  },
+
   // Board command
   board: {
     info: {

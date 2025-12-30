@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import type { ProjectConfig } from '../types/config.js';
+import type { ProjectConfig, CardTemplate } from '../types/config.js';
 import type { Member, Label, List } from '../api/types.js';
 
 export class Cache {
@@ -144,5 +144,30 @@ export class Cache {
 
   getData(): ProjectConfig | null {
     return this.data;
+  }
+
+  getTemplates(): Record<string, CardTemplate> {
+    return this.data?.templates || {};
+  }
+
+  getTemplate(name: string): CardTemplate | undefined {
+    return this.data?.templates?.[name];
+  }
+
+  async saveTemplate(name: string, template: CardTemplate): Promise<void> {
+    if (!this.data) return;
+
+    if (!this.data.templates) {
+      this.data.templates = {};
+    }
+    this.data.templates[name] = template;
+    await this.save();
+  }
+
+  async deleteTemplate(name: string): Promise<void> {
+    if (!this.data || !this.data.templates) return;
+
+    delete this.data.templates[name];
+    await this.save();
   }
 }

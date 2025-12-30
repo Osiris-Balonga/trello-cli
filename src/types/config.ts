@@ -15,6 +15,13 @@ export interface GlobalConfig {
   authMode?: 'apikey' | 'oauth';
 }
 
+export interface CardTemplate {
+  name: string;
+  description?: string;
+  labels?: string[];
+  list?: string;
+}
+
 export interface ProjectConfig {
   boardId: string;
   boardName: string;
@@ -28,4 +35,5 @@ export interface ProjectConfig {
     [key: string]: List;
   };
   lastSync: string | null;
+  templates?: Record<string, CardTemplate>;
 }

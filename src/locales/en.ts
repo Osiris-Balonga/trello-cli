@@ -340,6 +340,23 @@ export default {
     completionRate: 'completion rate',
   },
 
+  // Template command
+  template: {
+    creating: 'Creating template "{{name}}"',
+    promptName: 'Template display name:',
+    promptDescription: 'Description template:',
+    promptLabels: 'Default labels:',
+    promptList: 'Default list:',
+    created: 'Template "{{name}}" created',
+    alreadyExists: 'Template "{{name}}" already exists',
+    notFound: 'Template "{{name}}" not found',
+    deleted: 'Template "{{name}}" deleted',
+    listTitle: 'Available Templates',
+    noTemplates: 'No templates found',
+    createHint: 'Create one with: tt template create <name>',
+    usageHint: 'Usage: tt create --template <name> "Card title"',
+  },
+
   // Board command
   board: {
     info: {
