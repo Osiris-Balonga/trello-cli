@@ -1,12 +1,13 @@
 import { Command } from 'commander';
+import { createAuthCommand } from './commands/auth.js';
 
 const program = new Command();
 
 program
   .name('tt')
-  .description('CLI moderne pour gérer Trello depuis le terminal')
+  .description('Trello CLI - Manage your Trello cards from the terminal')
   .version('1.0.0');
 
-// Les commandes seront ajoutées ici dans les prochaines tasks
+program.addCommand(createAuthCommand());
 
 program.parse();
