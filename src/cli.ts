@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { createAuthCommand } from './commands/auth.js';
 import { createInitCommand } from './commands/init.js';
+import { createListCommand } from './commands/list.js';
 
 const program = new Command();
 
@@ -11,5 +12,6 @@ program
 
 program.addCommand(createAuthCommand());
 program.addCommand(createInitCommand());
+program.addCommand(createListCommand());
 
 program.parse();
