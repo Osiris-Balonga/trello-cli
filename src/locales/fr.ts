@@ -59,6 +59,12 @@ export default {
       invalidToken: 'Format de token invalide (64 caractères hexadécimaux attendus)',
       success: 'Authentification OAuth configurée !',
     },
+    logout: {
+      confirm: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+      cancelled: 'Déconnexion annulée.',
+      success: 'Déconnecté avec succès. Credentials supprimés.',
+      notAuthenticated: 'Vous n\'êtes pas connecté.',
+    },
   },
 
   // Init command

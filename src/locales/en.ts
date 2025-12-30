@@ -59,6 +59,12 @@ export default {
       invalidToken: 'Invalid token format (expected 64 hex characters)',
       success: 'OAuth authentication configured!',
     },
+    logout: {
+      confirm: 'Are you sure you want to logout?',
+      cancelled: 'Logout cancelled.',
+      success: 'Logged out successfully. Credentials removed.',
+      notAuthenticated: 'You are not logged in.',
+    },
   },
 
   // Init command

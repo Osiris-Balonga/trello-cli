@@ -17,7 +17,8 @@ export function createAuthCommand(): Command {
     .description('Authenticate with Trello API')
     .addCommand(createApiKeyCommand())
     .addCommand(createOAuthCommand())
-    .addCommand(createStatusCommand());
+    .addCommand(createStatusCommand())
+    .addCommand(createLogoutCommand());
 
   return auth;
 }
@@ -186,4 +187,41 @@ async function handleAuthStatus(): Promise<void> {
   }
 
   console.log(chalk.gray('\n' + t('auth.status.config', { path: config.getPath() }) + '\n'));
+}
+
+function createLogoutCommand(): Command {
+  const logout = new Command('logout');
+
+  logout
+    .description('Logout and remove credentials')
+    .option('-f, --force', 'Skip confirmation')
+    .action(async (options: { force?: boolean }) => {
+      await handleLogout(options.force ?? false);
+    });
+
+  return logout;
+}
+
+async function handleLogout(force: boolean): Promise<void> {
+  const isAuth = await config.isAuthenticated();
+
+  if (!isAuth) {
+    console.log(chalk.yellow(`\n${t('auth.logout.notAuthenticated')}\n`));
+    return;
+  }
+
+  if (!force) {
+    const confirmed = await confirm({
+      message: t('auth.logout.confirm'),
+      default: false,
+    });
+
+    if (!confirmed) {
+      console.log(chalk.gray(t('auth.logout.cancelled')));
+      return;
+    }
+  }
+
+  await config.clearAuth();
+  console.log(chalk.green(`\n✓ ${t('auth.logout.success')}\n`));
 }
