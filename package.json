@@ -1,0 +1,79 @@
+{
+  "name": "@osirisbalonga/trello-cli",
+  "version": "1.0.0",
+  "description": "CLI moderne pour gérer Trello depuis le terminal",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "tt": "./dist/cli.js",
+    "trello-cli": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "local:install": "pnpm build && pnpm link --global",
+    "local:uninstall": "pnpm unlink --global",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "keywords": [
+    "trello",
+    "cli",
+    "task-management",
+    "productivity",
+    "terminal"
+  ],
+  "author": "Osiris Balonga",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/osirisbalonga/trello-cli.git"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "dependencies": {
+    "@inquirer/prompts": "^7.2.0",
+    "axios": "^1.13.2",
+    "chalk": "^5.4.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.2",
+    "conf": "^13.0.1",
+    "date-fns": "^4.1.0",
+    "i18next": "^24.1.0",
+    "keytar": "^7.9.0",
+    "ora": "^8.1.1",
+    "p-limit": "^6.1.0",
+    "simple-git": "^3.27.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^8.57.1",
+    "prettier": "^3.4.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

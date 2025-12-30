@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+pnpm-debug.log*
+
+# Build
+dist/
+*.tsbuildinfo
+
+# Testing
+coverage/
+.vitest/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (sensitive project config)
+.trello-cli.json
+
+# Logs
+*.log
+
+# Claude Code (local only)
+.claude/
+claudedocs/
+tasks/
+.mcp.json
+CLAUDE.md
+**/CLAUDE.md
+
+# Changeset temp
+.changeset/*.md
+!.changeset/config.json
