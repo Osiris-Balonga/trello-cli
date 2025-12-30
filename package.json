@@ -1,7 +1,7 @@
 {
   "name": "@osirisbalonga/trello-cli",
   "version": "1.0.0",
-  "description": "CLI moderne pour gérer Trello depuis le terminal",
+  "description": "Manage your Trello cards from the terminal. Create, move, and track tasks without leaving your development environment.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
