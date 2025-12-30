@@ -263,6 +263,17 @@ export default {
     listLabel: 'List:',
   },
 
+  // Archive command
+  archive: {
+    archiving: 'Archiving card...',
+    unarchiving: 'Unarchiving card...',
+    archiveSuccess: 'Card archived: "{{name}}"',
+    unarchiveSuccess: 'Card unarchived: "{{name}}"',
+    archiveFailed: 'Failed to archive card',
+    unarchiveFailed: 'Failed to unarchive card',
+    invalidCard: 'Invalid card number. Must be between 1 and {{max}}.',
+  },
+
   // Board command
   board: {
     info: {

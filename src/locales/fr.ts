@@ -268,6 +268,17 @@ export default {
     listLabel: 'Liste :',
   },
 
+  // Archive command
+  archive: {
+    archiving: 'Archivage de la carte...',
+    unarchiving: 'Désarchivage de la carte...',
+    archiveSuccess: 'Carte archivée : "{{name}}"',
+    unarchiveSuccess: 'Carte désarchivée : "{{name}}"',
+    archiveFailed: "Échec de l'archivage",
+    unarchiveFailed: 'Échec du désarchivage',
+    invalidCard: 'Numéro de carte invalide. Doit être entre 1 et {{max}}.',
+  },
+
   // Board command
   board: {
     info: {
