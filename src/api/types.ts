@@ -84,3 +84,30 @@ export interface UpdateCardParams {
   idMembers?: string[];
   pos?: 'top' | 'bottom' | number;
 }
+
+export interface TrelloAction {
+  id: string;
+  type: string;
+  date: string;
+  memberCreator?: {
+    id: string;
+    username: string;
+    fullName: string;
+  };
+  data: {
+    text?: string;
+    card?: {
+      id: string;
+      name: string;
+      closed?: boolean;
+    };
+    listAfter?: {
+      id: string;
+      name: string;
+    };
+    listBefore?: {
+      id: string;
+      name: string;
+    };
+  };
+}

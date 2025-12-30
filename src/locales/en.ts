@@ -274,6 +274,19 @@ export default {
     invalidCard: 'Invalid card number. Must be between 1 and {{max}}.',
   },
 
+  // Comment command
+  comment: {
+    title: 'Comments on "{{name}}"',
+    enterText: 'Enter your comment:',
+    adding: 'Adding comment...',
+    loading: 'Loading comments...',
+    success: 'Comment added successfully',
+    failed: 'Failed to add comment',
+    empty: 'Comment cannot be empty',
+    noComments: 'No comments on this card',
+    invalidCard: 'Invalid card number. Must be between 1 and {{max}}.',
+  },
+
   // Board command
   board: {
     info: {

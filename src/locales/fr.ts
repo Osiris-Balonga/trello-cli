@@ -279,6 +279,19 @@ export default {
     invalidCard: 'Numéro de carte invalide. Doit être entre 1 et {{max}}.',
   },
 
+  // Comment command
+  comment: {
+    title: 'Commentaires sur "{{name}}"',
+    enterText: 'Entrez votre commentaire :',
+    adding: 'Ajout du commentaire...',
+    loading: 'Chargement des commentaires...',
+    success: 'Commentaire ajouté avec succès',
+    failed: "Échec de l'ajout du commentaire",
+    empty: 'Le commentaire ne peut pas être vide',
+    noComments: 'Aucun commentaire sur cette carte',
+    invalidCard: 'Numéro de carte invalide. Doit être entre 1 et {{max}}.',
+  },
+
   // Board command
   board: {
     info: {

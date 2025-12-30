@@ -15,6 +15,7 @@ import { createDueCommand } from './commands/due.js';
 import { createBoardCommand } from './commands/board.js';
 import { createDeleteCommand } from './commands/delete.js';
 import { createArchiveCommand } from './commands/archive.js';
+import { createCommentCommand } from './commands/comment.js';
 import { initI18n } from './utils/i18n.js';
 
 await initI18n();
@@ -42,5 +43,6 @@ program.addCommand(createDueCommand());
 program.addCommand(createBoardCommand());
 program.addCommand(createDeleteCommand());
 program.addCommand(createArchiveCommand());
+program.addCommand(createCommentCommand());
 
 program.parse();

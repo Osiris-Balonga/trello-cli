@@ -1,5 +1,27 @@
 import chalk from 'chalk';
+import { format, formatDistanceToNow, isPast, isToday, isThisWeek } from 'date-fns';
 import type { Card, List } from '../api/types.js';
+
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return format(date, 'yyyy-MM-dd HH:mm');
+}
+
+export function formatDueDate(dateString: string): string {
+  const date = new Date(dateString);
+  const formatted = format(date, 'yyyy-MM-dd');
+
+  if (isPast(date) && !isToday(date)) {
+    return `${formatted} (OVERDUE)`;
+  }
+  if (isToday(date)) {
+    return `${formatted} (TODAY)`;
+  }
+  if (isThisWeek(date)) {
+    return `${formatted} (${formatDistanceToNow(date, { addSuffix: true })})`;
+  }
+  return formatted;
+}
 
 export function displayCardsByList(
   cards: Card[],

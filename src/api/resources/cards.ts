@@ -1,5 +1,10 @@
 import type { AxiosInstance } from 'axios';
-import type { Card, CreateCardParams, UpdateCardParams } from '../types.js';
+import type {
+  Card,
+  CreateCardParams,
+  UpdateCardParams,
+  TrelloAction,
+} from '../types.js';
 
 export class CardsResource {
   constructor(private api: AxiosInstance) {}
@@ -51,5 +56,37 @@ export class CardsResource {
 
   async unarchive(cardId: string): Promise<Card> {
     return this.update(cardId, { closed: false });
+  }
+
+  async addComment(cardId: string, text: string): Promise<TrelloAction> {
+    const { data } = await this.api.post<TrelloAction>(
+      `/cards/${cardId}/actions/comments`,
+      { text }
+    );
+    return data;
+  }
+
+  async getComments(cardId: string): Promise<TrelloAction[]> {
+    const { data } = await this.api.get<TrelloAction[]>(
+      `/cards/${cardId}/actions`,
+      { params: { filter: 'commentCard' } }
+    );
+    return data;
+  }
+
+  async addLabel(cardId: string, labelId: string): Promise<void> {
+    await this.api.post(`/cards/${cardId}/idLabels`, { value: labelId });
+  }
+
+  async removeLabel(cardId: string, labelId: string): Promise<void> {
+    await this.api.delete(`/cards/${cardId}/idLabels/${labelId}`);
+  }
+
+  async addMember(cardId: string, memberId: string): Promise<void> {
+    await this.api.post(`/cards/${cardId}/idMembers`, { value: memberId });
+  }
+
+  async removeMember(cardId: string, memberId: string): Promise<void> {
+    await this.api.delete(`/cards/${cardId}/idMembers/${memberId}`);
   }
 }
