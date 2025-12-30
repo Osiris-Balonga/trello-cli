@@ -292,6 +292,23 @@ export default {
     invalidCard: 'Numéro de carte invalide. Doit être entre 1 et {{max}}.',
   },
 
+  // Watch command
+  watch: {
+    watching: 'Surveillance',
+    pressCtrlC: 'Appuyez sur Ctrl+C pour arrêter',
+    changed: 'Carte modifiée !',
+    refreshing: 'Rafraîchissement dans {{seconds}}s',
+    stopped: 'Surveillance arrêtée',
+    error: 'Erreur lors du rafraîchissement',
+    status: 'Statut',
+    due: 'Échéance',
+    members: 'Membres',
+    comments: 'Commentaires',
+    recentComments: 'Commentaires récents',
+    lastUpdated: 'Dernière mise à jour',
+    invalidCard: 'Numéro de carte invalide. Doit être entre 1 et {{max}}.',
+  },
+
   // Board command
   board: {
     info: {

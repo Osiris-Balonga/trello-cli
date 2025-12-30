@@ -287,6 +287,23 @@ export default {
     invalidCard: 'Invalid card number. Must be between 1 and {{max}}.',
   },
 
+  // Watch command
+  watch: {
+    watching: 'Watching',
+    pressCtrlC: 'Press Ctrl+C to stop',
+    changed: 'Card changed!',
+    refreshing: 'Refreshing in {{seconds}}s',
+    stopped: 'Watch stopped',
+    error: 'Error refreshing card',
+    status: 'Status',
+    due: 'Due',
+    members: 'Members',
+    comments: 'Comments',
+    recentComments: 'Recent comments',
+    lastUpdated: 'Last updated',
+    invalidCard: 'Invalid card number. Must be between 1 and {{max}}.',
+  },
+
   // Board command
   board: {
     info: {
