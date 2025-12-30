@@ -10,6 +10,7 @@ import { createMembersCommand } from './commands/members.js';
 import { createLabelsCommand } from './commands/labels.js';
 import { createConfigCommand } from './commands/config.js';
 import { createSyncCommand } from './commands/sync.js';
+import { createSearchCommand } from './commands/search.js';
 import { initI18n } from './utils/i18n.js';
 
 await initI18n();
@@ -32,5 +33,6 @@ program.addCommand(createMembersCommand());
 program.addCommand(createLabelsCommand());
 program.addCommand(createConfigCommand());
 program.addCommand(createSyncCommand());
+program.addCommand(createSearchCommand());
 
 program.parse();

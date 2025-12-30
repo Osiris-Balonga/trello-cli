@@ -247,6 +247,14 @@ export default {
     lastSync: 'Dernière sync : {{date}}',
   },
 
+  // Search command
+  search: {
+    searching: 'Recherche...',
+    found: '{{count}} cartes trouvées pour "{{query}}" :',
+    noResults: 'Aucune carte trouvée pour "{{query}}"',
+    failed: 'Échec de la recherche',
+  },
+
   // Config command
   config: {
     get: {

@@ -242,6 +242,14 @@ export default {
     lastSync: 'Last sync: {{date}}',
   },
 
+  // Search command
+  search: {
+    searching: 'Searching...',
+    found: 'Found {{count}} cards matching "{{query}}":',
+    noResults: 'No cards found matching "{{query}}"',
+    failed: 'Search failed',
+  },
+
   // Config command
   config: {
     get: {
