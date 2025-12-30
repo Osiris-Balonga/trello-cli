@@ -239,6 +239,14 @@ export default {
     },
   },
 
+  // Sync command
+  sync: {
+    syncing: 'Synchronisation avec Trello...',
+    success: '{{members}} membres, {{labels}} labels, {{lists}} listes synchronisés',
+    failed: 'Échec de la synchronisation',
+    lastSync: 'Dernière sync : {{date}}',
+  },
+
   // Config command
   config: {
     get: {
