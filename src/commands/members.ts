@@ -16,7 +16,7 @@ export function createMembersCommand(): Command {
   members
     .command('list')
     .description(t('cli.subcommands.members.list'))
-    .option('--refresh', 'Refresh member list from Trello')
+    .option('--refresh', t('cli.options.refresh'))
     .action(async (options: { refresh?: boolean }) => {
       try {
         const cache = await loadCache();

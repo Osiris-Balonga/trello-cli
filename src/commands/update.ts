@@ -15,13 +15,13 @@ export function createUpdateCommand(): Command {
 
   update
     .description(t('cli.commands.update'))
-    .argument('<cardNumber>', 'Card number from list')
-    .option('-n, --name <title>', 'New card title')
+    .argument('<cardNumber>', t('cli.arguments.cardNumber'))
+    .option('-n, --name <title>', t('cli.arguments.name'))
     .option('-d, --desc <text>', t('cli.options.description'))
     .option('--due <date>', t('cli.options.due'))
     .option('-l, --labels <names>', t('cli.options.labels'))
     .option('-m, --members <usernames>', t('cli.options.members'))
-    .option('--archive', 'Archive the card')
+    .option('--archive', t('cli.options.archive'))
     .option('--unarchive', t('cli.options.unarchive'))
     .action(
       async (

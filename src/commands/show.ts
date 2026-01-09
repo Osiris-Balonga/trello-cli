@@ -71,7 +71,7 @@ export function createShowCommand(): Command {
 
   show
     .description(t('cli.commands.show'))
-    .argument('<cardNumber>', 'Card number from list')
+    .argument('<cardNumber>', t('cli.arguments.cardNumber'))
     .action(async (cardNumberStr: string) => {
       try {
         const cache = await loadCache();

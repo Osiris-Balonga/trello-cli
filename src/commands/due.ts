@@ -32,7 +32,7 @@ export function createDueCommand(): Command {
   due
     .description(t('cli.commands.due'))
     .option('--overdue', t('cli.options.overdue'))
-    .option('--today', 'Show only cards due today')
+    .option('--today', t('cli.options.today'))
     .option('--week', t('cli.options.week'))
     .option('--month', t('cli.options.month'))
     .action(async (options: DueOptions) => {

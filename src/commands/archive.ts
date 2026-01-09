@@ -15,7 +15,7 @@ export function createArchiveCommand(): Command {
 
   archive
     .description(t('cli.commands.archive'))
-    .argument('<cardNumber>', 'Card number from tt list')
+    .argument('<cardNumber>', t('cli.arguments.cardNumber'))
     .option('--undo', t('cli.options.unarchive'))
     .action(async (cardNumberStr: string, options: ArchiveOptions) => {
       await handleArchive(parseInt(cardNumberStr, 10), options.undo ?? false);

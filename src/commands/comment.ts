@@ -18,8 +18,8 @@ export function createCommentCommand(): Command {
 
   comment
     .description(t('cli.commands.comment'))
-    .argument('<cardNumber>', 'Card number from tt list')
-    .argument('[text]', 'Comment text (interactive if omitted)')
+    .argument('<cardNumber>', t('cli.arguments.cardNumber'))
+    .argument('[text]', t('cli.arguments.text'))
     .option('--list', t('cli.options.listComments'))
     .action(async (cardNumberStr: string, text: string | undefined, options: CommentOptions) => {
       if (options.list) {

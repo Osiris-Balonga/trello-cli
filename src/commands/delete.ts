@@ -17,7 +17,7 @@ export function createDeleteCommand(): Command {
 
   del
     .description(t('cli.commands.delete'))
-    .argument('<cardNumber>', 'Card number from list')
+    .argument('<cardNumber>', t('cli.arguments.cardNumber'))
     .option('-f, --force', t('cli.options.force'))
     .action(async (cardNumberStr: string, options: DeleteOptions) => {
       await handleDelete(parseInt(cardNumberStr, 10), options.force ?? false);

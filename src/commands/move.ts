@@ -13,8 +13,8 @@ export function createMoveCommand(): Command {
 
   move
     .description(t('cli.commands.move'))
-    .argument('<cardNumber>', 'Card number from list')
-    .argument('[list]', 'Target list alias (todo/doing/done)')
+    .argument('<cardNumber>', t('cli.arguments.cardNumber'))
+    .argument('[list]', t('cli.arguments.list'))
     .action(async (cardNumberStr: string, listAlias: string | undefined) => {
       try {
         const cache = await loadCache();

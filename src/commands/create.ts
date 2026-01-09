@@ -20,7 +20,7 @@ export function createCreateCommand(): Command {
 
   create
     .description(t('cli.commands.create'))
-    .argument('[title]', 'Card title')
+    .argument('[title]', t('cli.arguments.title'))
     .option('-d, --desc <text>', t('cli.options.description'))
     .option('--due <date>', t('cli.options.due'))
     .option('-l, --labels <names>', t('cli.options.labels'))

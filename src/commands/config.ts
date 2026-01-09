@@ -14,7 +14,7 @@ export function createConfigCommand(): Command {
   configCmd
     .command('get')
     .description(t('cli.subcommands.config.get'))
-    .argument('<key>', 'Configuration key (language, authMode)')
+    .argument('<key>', t('cli.arguments.configKey'))
     .action((key: string) => {
       try {
         switch (key) {
@@ -38,8 +38,8 @@ export function createConfigCommand(): Command {
   configCmd
     .command('set')
     .description(t('cli.subcommands.config.set'))
-    .argument('<key>', 'Configuration key')
-    .argument('<value>', 'Configuration value')
+    .argument('<key>', t('cli.arguments.configKey'))
+    .argument('<value>', t('cli.arguments.configValue'))
     .action((key: string, value: string) => {
       try {
         switch (key) {

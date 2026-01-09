@@ -49,7 +49,7 @@ export function createLabelsCommand(): Command {
   labels
     .command('list')
     .description(t('cli.subcommands.labels.list'))
-    .option('--refresh', 'Refresh label list from Trello')
+    .option('--refresh', t('cli.options.refresh'))
     .action(async (options: { refresh?: boolean }) => {
       try {
         const cache = await loadCache();

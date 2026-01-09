@@ -21,11 +21,11 @@ export function createSearchCommand(): Command {
   search
     .description(t('cli.commands.search'))
     .argument('<query>', t('cli.options.query'))
-    .option('--in-title', 'Search in titles only')
-    .option('--in-desc', 'Search in descriptions only')
-    .option('-l, --labels <names>', 'Filter by labels (comma-separated)')
-    .option('-m, --members <usernames>', 'Filter by members (comma-separated)')
-    .option('--list <alias>', 'Filter by list (todo/doing/done)')
+    .option('--in-title', t('cli.options.inTitle'))
+    .option('--in-desc', t('cli.options.inDesc'))
+    .option('-l, --labels <names>', t('cli.options.labels'))
+    .option('-m, --members <usernames>', t('cli.options.members'))
+    .option('--list <alias>', t('cli.options.listFilter'))
     .action(async (query: string, options: SearchOptions) => {
       await handleSearch(query, options);
     });

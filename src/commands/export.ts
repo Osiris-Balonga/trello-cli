@@ -25,7 +25,7 @@ export function createExportCommand(): Command {
 
   exportCmd
     .description(t('cli.commands.export'))
-    .argument('<format>', 'Export format (json, csv, md, html)')
+    .argument('<format>', t('cli.arguments.format'))
     .option('-o, --output <file>', t('cli.options.output'))
     .option('--list <alias>', t('cli.options.list'))
     .action(async (format: string, options: ExportOptions) => {

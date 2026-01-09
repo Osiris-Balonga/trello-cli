@@ -17,7 +17,7 @@ export function createWatchCommand(): Command {
 
   watch
     .description(t('cli.commands.watch'))
-    .argument('<cardNumber>', 'Card number from tt list')
+    .argument('<cardNumber>', t('cli.arguments.cardNumber'))
     .option('-i, --interval <seconds>', t('cli.options.interval'), '30')
     .action(async (cardNumberStr: string, options: WatchOptions) => {
       await handleWatch(
