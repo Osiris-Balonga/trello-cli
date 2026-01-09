@@ -30,11 +30,11 @@ export function createDueCommand(): Command {
   const due = new Command('due');
 
   due
-    .description('List cards with due dates')
-    .option('--overdue', 'Show only overdue cards')
+    .description(t('cli.commands.due'))
+    .option('--overdue', t('cli.options.overdue'))
     .option('--today', 'Show only cards due today')
-    .option('--week', 'Show only cards due this week')
-    .option('--month', 'Show only cards due this month')
+    .option('--week', t('cli.options.week'))
+    .option('--month', t('cli.options.month'))
     .action(async (options: DueOptions) => {
       await handleDue(options);
     });

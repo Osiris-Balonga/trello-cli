@@ -6,12 +6,13 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { Cache } from '../core/cache.js';
 import { TrelloError } from '../utils/errors.js';
 import { handleCommandError } from '../utils/error-handler.js';
+import { t } from '../utils/i18n.js';
 
 export function createInitCommand(): Command {
   const init = new Command('init');
 
   init
-    .description('Initialize Trello board for this project')
+    .description(t('cli.commands.init'))
     .action(async () => {
       const spinner = ora('Fetching your Trello boards...').start();
 

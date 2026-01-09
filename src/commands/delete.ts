@@ -16,9 +16,9 @@ export function createDeleteCommand(): Command {
   const del = new Command('delete');
 
   del
-    .description('Delete a card permanently')
+    .description(t('cli.commands.delete'))
     .argument('<cardNumber>', 'Card number from list')
-    .option('-f, --force', 'Skip confirmation')
+    .option('-f, --force', t('cli.options.force'))
     .action(async (cardNumberStr: string, options: DeleteOptions) => {
       await handleDelete(parseInt(cardNumberStr, 10), options.force ?? false);
     });

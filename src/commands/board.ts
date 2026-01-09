@@ -11,7 +11,7 @@ export function createBoardCommand(): Command {
   const board = new Command('board');
 
   board
-    .description('Board management commands')
+    .description(t('cli.commands.board'))
     .addCommand(createBoardInfoCommand());
 
   return board;
@@ -20,7 +20,7 @@ export function createBoardCommand(): Command {
 function createBoardInfoCommand(): Command {
   const info = new Command('info');
 
-  info.description('Show board information').action(async () => {
+  info.description(t('cli.subcommands.board.info')).action(async () => {
     await handleBoardInfo();
   });
 

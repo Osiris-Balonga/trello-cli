@@ -21,7 +21,7 @@ import { createExportCommand } from './commands/export.js';
 import { createStatsCommand } from './commands/stats.js';
 import { createTemplateCommand } from './commands/template.js';
 import { createBatchCommand } from './commands/batch.js';
-import { initI18n } from './utils/i18n.js';
+import { initI18n, t } from './utils/i18n.js';
 
 await initI18n();
 
@@ -29,7 +29,7 @@ const program = new Command();
 
 program
   .name('tt')
-  .description('Trello CLI - Manage your Trello cards from the terminal')
+  .description(t('cli.description'))
   .version('1.0.0');
 
 program.addCommand(createAuthCommand());

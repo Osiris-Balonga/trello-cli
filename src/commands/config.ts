@@ -4,15 +4,16 @@ import { config } from '../utils/config.js';
 import { getSupportedLanguages, isValidLanguage } from '../utils/locale.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloValidationError } from '../utils/errors.js';
+import { t } from '../utils/i18n.js';
 
 export function createConfigCommand(): Command {
   const configCmd = new Command('config');
 
-  configCmd.description('Manage CLI configuration');
+  configCmd.description(t('cli.commands.config'));
 
   configCmd
     .command('get')
-    .description('Get a configuration value')
+    .description(t('cli.subcommands.config.get'))
     .argument('<key>', 'Configuration key (language, authMode)')
     .action((key: string) => {
       try {
@@ -36,7 +37,7 @@ export function createConfigCommand(): Command {
 
   configCmd
     .command('set')
-    .description('Set a configuration value')
+    .description(t('cli.subcommands.config.set'))
     .argument('<key>', 'Configuration key')
     .argument('<value>', 'Configuration value')
     .action((key: string, value: string) => {
@@ -67,7 +68,7 @@ export function createConfigCommand(): Command {
 
   configCmd
     .command('list')
-    .description('List all configuration values')
+    .description(t('cli.subcommands.config.list'))
     .action(() => {
       try {
         console.log(chalk.bold('\n⚙️  Current Configuration\n'));

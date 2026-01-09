@@ -14,7 +14,7 @@ export function createAuthCommand(): Command {
   const auth = new Command('auth');
 
   auth
-    .description('Authenticate with Trello API')
+    .description(t('cli.commands.auth'))
     .addCommand(createApiKeyCommand())
     .addCommand(createOAuthCommand())
     .addCommand(createStatusCommand())
@@ -27,7 +27,7 @@ function createApiKeyCommand(): Command {
   const apikey = new Command('apikey');
 
   apikey
-    .description('Authenticate using API Key and Token')
+    .description(t('cli.subcommands.auth.apikey'))
     .action(async () => {
       await handleApiKeyAuth();
     });
@@ -39,7 +39,7 @@ function createOAuthCommand(): Command {
   const oauth = new Command('oauth');
 
   oauth
-    .description('Authenticate using OAuth (for teams)')
+    .description(t('cli.subcommands.auth.oauth'))
     .action(async () => {
       await handleOAuthAuth();
     });
@@ -114,7 +114,7 @@ function createStatusCommand(): Command {
   const status = new Command('status');
 
   status
-    .description('Check authentication status')
+    .description(t('cli.subcommands.auth.status'))
     .action(async () => {
       await handleAuthStatus();
     });
@@ -193,8 +193,8 @@ function createLogoutCommand(): Command {
   const logout = new Command('logout');
 
   logout
-    .description('Logout and remove credentials')
-    .option('-f, --force', 'Skip confirmation')
+    .description(t('cli.subcommands.auth.logout'))
+    .option('-f, --force', t('cli.options.force'))
     .action(async (options: { force?: boolean }) => {
       await handleLogout(options.force ?? false);
     });

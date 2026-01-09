@@ -6,15 +6,16 @@ import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
+import { t } from '../utils/i18n.js';
 
 export function createMembersCommand(): Command {
   const members = new Command('members');
 
-  members.description('Manage board members');
+  members.description(t('cli.commands.members'));
 
   members
     .command('list')
-    .description('List all board members')
+    .description(t('cli.subcommands.members.list'))
     .option('--refresh', 'Refresh member list from Trello')
     .action(async (options: { refresh?: boolean }) => {
       try {

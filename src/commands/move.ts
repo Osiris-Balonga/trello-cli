@@ -6,12 +6,13 @@ import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
+import { t } from '../utils/i18n.js';
 
 export function createMoveCommand(): Command {
   const move = new Command('move');
 
   move
-    .description('Move a card to another list')
+    .description(t('cli.commands.move'))
     .argument('<cardNumber>', 'Card number from list')
     .argument('[list]', 'Target list alias (todo/doing/done)')
     .action(async (cardNumberStr: string, listAlias: string | undefined) => {

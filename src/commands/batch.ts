@@ -16,58 +16,58 @@ interface BatchOptions {
 export function createBatchCommand(): Command {
   const batch = new Command('batch');
 
-  batch.description('Perform bulk operations on multiple cards');
+  batch.description(t('cli.commands.batch'));
 
   batch
     .command('move <list> <cards...>')
-    .description('Move multiple cards to a list')
-    .option('--dry-run', 'Preview without executing')
-    .option('--parallel', 'Execute in parallel')
+    .description(t('cli.subcommands.batch.move'))
+    .option('--dry-run', t('cli.options.dryRun'))
+    .option('--parallel', t('cli.options.parallel'))
     .action(async (list: string, cards: string[], options: BatchOptions) => {
       await handleBatchMove(list, cards, options);
     });
 
   batch
     .command('archive <cards...>')
-    .description('Archive multiple cards')
-    .option('--dry-run', 'Preview without executing')
-    .option('--parallel', 'Execute in parallel')
+    .description(t('cli.subcommands.batch.archive'))
+    .option('--dry-run', t('cli.options.dryRun'))
+    .option('--parallel', t('cli.options.parallel'))
     .action(async (cards: string[], options: BatchOptions) => {
       await handleBatchArchive(cards, options, true);
     });
 
   batch
     .command('unarchive <cards...>')
-    .description('Unarchive multiple cards')
-    .option('--dry-run', 'Preview without executing')
-    .option('--parallel', 'Execute in parallel')
+    .description(t('cli.subcommands.batch.unarchive'))
+    .option('--dry-run', t('cli.options.dryRun'))
+    .option('--parallel', t('cli.options.parallel'))
     .action(async (cards: string[], options: BatchOptions) => {
       await handleBatchArchive(cards, options, false);
     });
 
   batch
     .command('label <name> <cards...>')
-    .description('Add a label to multiple cards')
-    .option('--dry-run', 'Preview without executing')
-    .option('--parallel', 'Execute in parallel')
+    .description(t('cli.subcommands.batch.label'))
+    .option('--dry-run', t('cli.options.dryRun'))
+    .option('--parallel', t('cli.options.parallel'))
     .action(async (name: string, cards: string[], options: BatchOptions) => {
       await handleBatchLabel(name, cards, options, 'add');
     });
 
   batch
     .command('unlabel <name> <cards...>')
-    .description('Remove a label from multiple cards')
-    .option('--dry-run', 'Preview without executing')
-    .option('--parallel', 'Execute in parallel')
+    .description(t('cli.subcommands.batch.unlabel'))
+    .option('--dry-run', t('cli.options.dryRun'))
+    .option('--parallel', t('cli.options.parallel'))
     .action(async (name: string, cards: string[], options: BatchOptions) => {
       await handleBatchLabel(name, cards, options, 'remove');
     });
 
   batch
     .command('assign <username> <cards...>')
-    .description('Assign a member to multiple cards')
-    .option('--dry-run', 'Preview without executing')
-    .option('--parallel', 'Execute in parallel')
+    .description(t('cli.subcommands.batch.assign'))
+    .option('--dry-run', t('cli.options.dryRun'))
+    .option('--parallel', t('cli.options.parallel'))
     .action(
       async (username: string, cards: string[], options: BatchOptions) => {
         await handleBatchAssign(username, cards, options, 'add');
@@ -76,9 +76,9 @@ export function createBatchCommand(): Command {
 
   batch
     .command('unassign <username> <cards...>')
-    .description('Unassign a member from multiple cards')
-    .option('--dry-run', 'Preview without executing')
-    .option('--parallel', 'Execute in parallel')
+    .description(t('cli.subcommands.batch.unassign'))
+    .option('--dry-run', t('cli.options.dryRun'))
+    .option('--parallel', t('cli.options.parallel'))
     .action(
       async (username: string, cards: string[], options: BatchOptions) => {
         await handleBatchAssign(username, cards, options, 'remove');

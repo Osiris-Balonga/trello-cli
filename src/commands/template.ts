@@ -10,32 +10,32 @@ import type { CardTemplate } from '../types/config.js';
 export function createTemplateCommand(): Command {
   const template = new Command('template');
 
-  template.description('Manage card templates');
+  template.description(t('cli.commands.template'));
 
   template
     .command('create <name>')
-    .description('Create a new card template')
+    .description(t('cli.subcommands.template.create'))
     .action(async (name: string) => {
       await handleCreateTemplate(name);
     });
 
   template
     .command('list')
-    .description('List all templates')
+    .description(t('cli.subcommands.template.list'))
     .action(async () => {
       await handleListTemplates();
     });
 
   template
     .command('show <name>')
-    .description('Show template details')
+    .description(t('cli.subcommands.template.show'))
     .action(async (name: string) => {
       await handleShowTemplate(name);
     });
 
   template
     .command('delete <name>')
-    .description('Delete a template')
+    .description(t('cli.subcommands.template.delete'))
     .action(async (name: string) => {
       await handleDeleteTemplate(name);
     });

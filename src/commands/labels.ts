@@ -6,6 +6,7 @@ import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
+import { t } from '../utils/i18n.js';
 
 const LABEL_COLORS: Record<string, string> = {
   green: '#61bd4f',
@@ -43,11 +44,11 @@ function formatLabelColor(color: string | null): string {
 export function createLabelsCommand(): Command {
   const labels = new Command('labels');
 
-  labels.description('Manage board labels');
+  labels.description(t('cli.commands.labels'));
 
   labels
     .command('list')
-    .description('List all board labels')
+    .description(t('cli.subcommands.labels.list'))
     .option('--refresh', 'Refresh label list from Trello')
     .action(async (options: { refresh?: boolean }) => {
       try {

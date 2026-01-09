@@ -17,10 +17,10 @@ export function createCommentCommand(): Command {
   const comment = new Command('comment');
 
   comment
-    .description('Add or list comments on a card')
+    .description(t('cli.commands.comment'))
     .argument('<cardNumber>', 'Card number from tt list')
     .argument('[text]', 'Comment text (interactive if omitted)')
-    .option('--list', 'List existing comments')
+    .option('--list', t('cli.options.listComments'))
     .action(async (cardNumberStr: string, text: string | undefined, options: CommentOptions) => {
       if (options.list) {
         await handleListComments(parseInt(cardNumberStr, 10));

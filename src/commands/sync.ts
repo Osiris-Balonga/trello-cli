@@ -10,7 +10,7 @@ export function createSyncCommand(): Command {
   const sync = new Command('sync');
 
   sync
-    .description('Sync local cache with Trello')
+    .description(t('cli.commands.sync'))
     .action(async () => {
       await handleSync();
     });

@@ -14,9 +14,9 @@ export function createArchiveCommand(): Command {
   const archive = new Command('archive');
 
   archive
-    .description('Archive a card (shortcut for update --archive)')
+    .description(t('cli.commands.archive'))
     .argument('<cardNumber>', 'Card number from tt list')
-    .option('--undo', 'Unarchive the card instead')
+    .option('--undo', t('cli.options.unarchive'))
     .action(async (cardNumberStr: string, options: ArchiveOptions) => {
       await handleArchive(parseInt(cardNumberStr, 10), options.undo ?? false);
     });

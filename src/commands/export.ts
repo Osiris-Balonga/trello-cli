@@ -24,10 +24,10 @@ export function createExportCommand(): Command {
   const exportCmd = new Command('export');
 
   exportCmd
-    .description('Export cards to various formats')
+    .description(t('cli.commands.export'))
     .argument('<format>', 'Export format (json, csv, md, html)')
-    .option('-o, --output <file>', 'Output file (stdout if omitted)')
-    .option('--list <alias>', 'Filter by list (todo/doing/done)')
+    .option('-o, --output <file>', t('cli.options.output'))
+    .option('--list <alias>', t('cli.options.list'))
     .action(async (format: string, options: ExportOptions) => {
       await handleExport(format as ExportFormat, options);
     });

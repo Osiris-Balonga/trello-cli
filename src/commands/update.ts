@@ -7,21 +7,22 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { Resolver } from '../core/resolver.js';
+import { t } from '../utils/i18n.js';
 import type { UpdateCardParams, Card } from '../api/types.js';
 
 export function createUpdateCommand(): Command {
   const update = new Command('update');
 
   update
-    .description('Update a card')
+    .description(t('cli.commands.update'))
     .argument('<cardNumber>', 'Card number from list')
     .option('-n, --name <title>', 'New card title')
-    .option('-d, --desc <text>', 'New description')
-    .option('--due <date>', 'Due date (YYYY-MM-DD or "clear")')
-    .option('-l, --labels <names>', 'Label names (comma-separated)')
-    .option('-m, --members <usernames>', 'Member usernames (comma-separated)')
+    .option('-d, --desc <text>', t('cli.options.description'))
+    .option('--due <date>', t('cli.options.due'))
+    .option('-l, --labels <names>', t('cli.options.labels'))
+    .option('-m, --members <usernames>', t('cli.options.members'))
     .option('--archive', 'Archive the card')
-    .option('--unarchive', 'Unarchive the card')
+    .option('--unarchive', t('cli.options.unarchive'))
     .action(
       async (
         cardNumberStr: string,

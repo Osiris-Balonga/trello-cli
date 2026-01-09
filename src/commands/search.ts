@@ -19,8 +19,8 @@ export function createSearchCommand(): Command {
   const search = new Command('search');
 
   search
-    .description('Search cards by keyword')
-    .argument('<query>', 'Search query')
+    .description(t('cli.commands.search'))
+    .argument('<query>', t('cli.options.query'))
     .option('--in-title', 'Search in titles only')
     .option('--in-desc', 'Search in descriptions only')
     .option('-l, --labels <names>', 'Filter by labels (comma-separated)')

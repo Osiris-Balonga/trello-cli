@@ -6,12 +6,13 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { displayCardsByList } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
+import { t } from '../utils/i18n.js';
 
 export function createListCommand(): Command {
   const list = new Command('list');
 
   list
-    .description('List all cards from the board')
+    .description(t('cli.commands.list'))
     .action(async () => {
       const spinner = ora('Loading cards...').start();
 

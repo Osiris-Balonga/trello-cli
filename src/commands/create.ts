@@ -19,13 +19,13 @@ export function createCreateCommand(): Command {
   const create = new Command('create');
 
   create
-    .description('Create a new card')
+    .description(t('cli.commands.create'))
     .argument('[title]', 'Card title')
-    .option('-d, --desc <text>', 'Card description')
-    .option('--due <date>', 'Due date (YYYY-MM-DD)')
-    .option('-l, --labels <names>', 'Label names (comma-separated)')
-    .option('-m, --members <usernames>', 'Member usernames (comma-separated)')
-    .option('--list <alias>', 'List alias (todo/doing/done)', 'todo')
+    .option('-d, --desc <text>', t('cli.options.description'))
+    .option('--due <date>', t('cli.options.due'))
+    .option('-l, --labels <names>', t('cli.options.labels'))
+    .option('-m, --members <usernames>', t('cli.options.members'))
+    .option('--list <alias>', t('cli.options.list'), 'todo')
     .action(async (title: string | undefined, rawOptions: unknown) => {
       try {
         const validationResult = CreateCardOptionsSchema.safeParse(rawOptions);

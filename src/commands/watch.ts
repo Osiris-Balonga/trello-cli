@@ -16,9 +16,9 @@ export function createWatchCommand(): Command {
   const watch = new Command('watch');
 
   watch
-    .description('Watch a card for changes in real-time')
+    .description(t('cli.commands.watch'))
     .argument('<cardNumber>', 'Card number from tt list')
-    .option('-i, --interval <seconds>', 'Refresh interval in seconds', '30')
+    .option('-i, --interval <seconds>', t('cli.options.interval'), '30')
     .action(async (cardNumberStr: string, options: WatchOptions) => {
       await handleWatch(
         parseInt(cardNumberStr, 10),

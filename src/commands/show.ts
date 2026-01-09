@@ -5,6 +5,7 @@ import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
+import { t } from '../utils/i18n.js';
 import type { Card } from '../api/types.js';
 
 function formatDate(dateStr: string | null): string {
@@ -69,7 +70,7 @@ export function createShowCommand(): Command {
   const show = new Command('show');
 
   show
-    .description('Show card details')
+    .description(t('cli.commands.show'))
     .argument('<cardNumber>', 'Card number from list')
     .action(async (cardNumberStr: string) => {
       try {

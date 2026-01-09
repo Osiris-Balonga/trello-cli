@@ -18,9 +18,9 @@ export function createStatsCommand(): Command {
   const stats = new Command('stats');
 
   stats
-    .description('Display board statistics')
-    .option('--member <username>', 'Stats for a specific member')
-    .option('--period <days>', 'Time period in days', '30')
+    .description(t('cli.commands.stats'))
+    .option('--member <username>', t('cli.options.member'))
+    .option('--period <days>', t('cli.options.period'), '30')
     .action(async (options: StatsOptions) => {
       await handleStats(options);
     });
