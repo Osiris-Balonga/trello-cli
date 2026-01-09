@@ -30,7 +30,9 @@ const program = new Command();
 program
   .name('tt')
   .description(t('cli.description'))
-  .version('1.0.0');
+  .version('1.0.0', '-V, --version', t('cli.version'))
+  .helpOption('-h, --help', t('cli.help'))
+  .addHelpCommand('help [command]', t('cli.helpCommand'));
 
 program.addCommand(createAuthCommand());
 program.addCommand(createInitCommand());

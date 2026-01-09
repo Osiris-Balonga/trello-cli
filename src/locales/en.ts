@@ -2,6 +2,9 @@ export default {
   // CLI descriptions
   cli: {
     description: 'Trello CLI - Manage your Trello cards from the terminal',
+    version: 'Output the version number',
+    help: 'Display help for command',
+    helpCommand: 'Display help for command',
     commands: {
       auth: 'Authenticate with Trello API',
       init: 'Initialize Trello board for this project',

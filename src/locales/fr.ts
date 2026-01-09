@@ -2,6 +2,9 @@ export default {
   // CLI descriptions
   cli: {
     description: 'Trello CLI - Gérez vos cartes Trello depuis le terminal',
+    version: 'Afficher le numéro de version',
+    help: 'Afficher l\'aide pour une commande',
+    helpCommand: 'Afficher l\'aide pour une commande',
     commands: {
       auth: "S'authentifier avec l'API Trello",
       init: 'Initialiser le board Trello pour ce projet',
