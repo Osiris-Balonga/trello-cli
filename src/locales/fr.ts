@@ -36,7 +36,7 @@ export default {
     subcommands: {
       auth: {
         apikey: 'S\'authentifier avec une clé API et un token',
-        oauth: 'S\'authentifier avec OAuth (pour équipes)',
+        oauth: 'S\'authentifier via navigateur (interactif)',
         status: 'Afficher le statut d\'authentification',
         logout: 'Supprimer les credentials stockés',
       },
@@ -137,20 +137,18 @@ export default {
   auth: {
     title: 'Authentification API Key Trello',
     instructions: {
-      intro: 'Pour obtenir votre clé API et votre token :',
-      step1: '1. Ouvrez : https://trello.com/app-key',
-      step2: '2. Copiez votre clé API',
-      step3: '3. Cliquez sur "Token" pour générer un token',
-      step4: "4. Autorisez l'accès",
-      step5: '5. Copiez le token généré',
+      intro: 'Obtenez votre clé API sur :',
+      tokenSteps:
+        '1. Ouvrez l\'URL ci-dessous dans votre navigateur\n2. Cliquez sur "Autoriser" pour autoriser Trello CLI\n3. Copiez le token affiché',
     },
     prompts: {
       apiKey: 'Entrez votre clé API :',
-      token: 'Entrez votre token :',
+      pasteToken: 'Collez le token ici :',
+      openBrowser: 'Ouvrir le navigateur automatiquement ?',
     },
     validation: {
-      apiKeyRequired: 'La clé API est requise',
-      tokenRequired: 'Le token est requis',
+      apiKeyInvalid: 'Format de clé API invalide (minimum 32 caractères)',
+      tokenInvalid: 'Format de token invalide',
     },
     success: 'Clé API configurée avec succès',
     configSaved: 'Configuration sauvegardée dans : {{path}}',
@@ -166,17 +164,17 @@ export default {
       config: 'Configuration : {{path}}',
     },
     oauth: {
-      title: 'Authentification OAuth (pour équipes)',
+      title: 'Authentification via navigateur',
       apiKeyExplanation:
-        'OAuth nécessite la clé API de votre organisation (fournie par l\'admin).',
-      enterOrgApiKey: 'Entrez la clé API de l\'organisation :',
+        'Cette méthode ouvre Trello dans votre navigateur pour autoriser le CLI.\nVous avez besoin d\'une clé API (obtenez-la sur trello.com/power-ups/admin).',
+      enterOrgApiKey: 'Entrez votre clé API :',
       invalidApiKey: 'Format de clé API invalide (minimum 32 caractères)',
       usingStoredApiKey: 'Utilisation de la clé API stockée : {{key}}...',
       instructions:
         '1. Ouvrez l\'URL ci-dessous dans votre navigateur\n2. Cliquez sur "Autoriser" pour autoriser Trello CLI\n3. Copiez le token affiché sur la page',
       openBrowser: 'Ouvrir le navigateur automatiquement ?',
       enterToken: 'Collez le token ici :',
-      invalidToken: 'Format de token invalide (64 caractères hexadécimaux attendus)',
+      invalidToken: 'Format de token invalide',
       success: 'Authentification OAuth configurée !',
     },
     logout: {

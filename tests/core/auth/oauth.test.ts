@@ -64,7 +64,7 @@ describe('OAuth', () => {
   });
 
   describe('validateToken', () => {
-    it('accepts valid 64-char hex token', () => {
+    it('accepts valid 64-char hex token (old format)', () => {
       const validToken = 'a'.repeat(64);
       expect(validateToken(validToken)).toBe(true);
 
@@ -72,16 +72,27 @@ describe('OAuth', () => {
       expect(validateToken(mixedCaseToken)).toBe(true);
     });
 
+    it('accepts valid ATTA token (new format)', () => {
+      const attaToken = 'ATTA' + 'a1b2c3d4e5f6'.repeat(6) + 'ab';
+      expect(validateToken(attaToken)).toBe(true);
+
+      const realFormatToken = 'ATTAe1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678';
+      expect(validateToken(realFormatToken)).toBe(true);
+    });
+
     it('rejects short tokens', () => {
       expect(validateToken('abc123')).toBe(false);
       expect(validateToken('a'.repeat(63))).toBe(false);
+      expect(validateToken('ATTA' + 'a'.repeat(50))).toBe(false);
     });
 
-    it('rejects long tokens', () => {
-      expect(validateToken('a'.repeat(65))).toBe(false);
+    it('rejects invalid ATTA tokens (too short)', () => {
+      expect(validateToken('ATTA')).toBe(false);
+      expect(validateToken('ATTA123')).toBe(false);
+      expect(validateToken('ATTA' + 'a'.repeat(59))).toBe(false);
     });
 
-    it('rejects non-hex characters', () => {
+    it('rejects non-hex characters in old format', () => {
       const invalidToken = 'g'.repeat(64);
       expect(validateToken(invalidToken)).toBe(false);
 
@@ -92,6 +103,9 @@ describe('OAuth', () => {
     it('trims whitespace before validation', () => {
       const tokenWithSpaces = '  ' + 'a'.repeat(64) + '  ';
       expect(validateToken(tokenWithSpaces)).toBe(true);
+
+      const attaWithSpaces = '  ATTA' + 'a'.repeat(72) + '  ';
+      expect(validateToken(attaWithSpaces)).toBe(true);
     });
 
     it('rejects empty string', () => {
@@ -117,14 +131,21 @@ describe('OAuth', () => {
   });
 
   describe('TOKEN_REGEX', () => {
-    it('matches valid hex tokens', () => {
+    it('matches valid hex tokens (old format)', () => {
       expect(TOKEN_REGEX.test('0123456789abcdef'.repeat(4))).toBe(true);
       expect(TOKEN_REGEX.test('ABCDEF0123456789'.repeat(4))).toBe(true);
+    });
+
+    it('matches valid ATTA tokens (new format, 76+ chars)', () => {
+      expect(TOKEN_REGEX.test('ATTA' + 'a'.repeat(72))).toBe(true);
+      expect(TOKEN_REGEX.test('ATTA' + 'a'.repeat(60))).toBe(true);
+      expect(TOKEN_REGEX.test('ATTAe1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678')).toBe(true);
     });
 
     it('rejects invalid tokens', () => {
       expect(TOKEN_REGEX.test('invalid')).toBe(false);
       expect(TOKEN_REGEX.test('')).toBe(false);
+      expect(TOKEN_REGEX.test('ATTA123')).toBe(false);
     });
   });
 });

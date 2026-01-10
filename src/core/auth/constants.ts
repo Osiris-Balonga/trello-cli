@@ -11,4 +11,7 @@ export const DEFAULT_OAUTH_CONFIG = {
   expiration: 'never' as OAuthExpiration,
 } as const;
 
-export const TOKEN_REGEX = /^[a-f0-9]{64}$/i;
+// Trello tokens are "opaque" - format can change
+// Old: 64 hex chars | New (2022+): 76 chars with ATTA prefix
+// See: https://community.developer.atlassian.com/t/trello-tokens-are-getting-longer/62964
+export const TOKEN_REGEX = /^([a-f0-9]{64}|ATTA[a-zA-Z0-9]{60,})$/i;

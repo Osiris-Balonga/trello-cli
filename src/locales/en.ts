@@ -36,7 +36,7 @@ export default {
     subcommands: {
       auth: {
         apikey: 'Authenticate with API Key and Token',
-        oauth: 'Authenticate with OAuth (for teams)',
+        oauth: 'Authenticate via browser (interactive)',
         status: 'Show authentication status',
         logout: 'Remove stored credentials',
       },
@@ -137,20 +137,18 @@ export default {
   auth: {
     title: 'Trello API Key Authentication',
     instructions: {
-      intro: 'To obtain your API Key and Token:',
-      step1: '1. Open: https://trello.com/app-key',
-      step2: '2. Copy your API Key',
-      step3: '3. Click on "Token" to generate a token',
-      step4: '4. Authorize access',
-      step5: '5. Copy the generated token',
+      intro: 'Get your API Key from:',
+      tokenSteps:
+        '1. Open the URL below in your browser\n2. Click "Allow" to authorize Trello CLI\n3. Copy the token displayed',
     },
     prompts: {
       apiKey: 'Enter your API Key:',
-      token: 'Enter your Token:',
+      pasteToken: 'Paste the token here:',
+      openBrowser: 'Open browser automatically?',
     },
     validation: {
-      apiKeyRequired: 'API Key is required',
-      tokenRequired: 'Token is required',
+      apiKeyInvalid: 'Invalid API Key format (minimum 32 characters)',
+      tokenInvalid: 'Invalid token format',
     },
     success: 'API Key configured successfully',
     configSaved: 'Config saved to: {{path}}',
@@ -166,17 +164,17 @@ export default {
       config: 'Config: {{path}}',
     },
     oauth: {
-      title: 'OAuth Authentication (for teams)',
+      title: 'Browser Authentication',
       apiKeyExplanation:
-        'OAuth requires your organization\'s API Key (shared by admin).',
-      enterOrgApiKey: 'Enter organization API Key:',
+        'This method opens Trello in your browser to authorize the CLI.\nYou need an API Key (get yours at trello.com/power-ups/admin).',
+      enterOrgApiKey: 'Enter your API Key:',
       invalidApiKey: 'Invalid API Key format (minimum 32 characters)',
       usingStoredApiKey: 'Using stored API Key: {{key}}...',
       instructions:
         '1. Open the URL below in your browser\n2. Click "Allow" to authorize Trello CLI\n3. Copy the token displayed on the page',
       openBrowser: 'Open browser automatically?',
       enterToken: 'Paste the token here:',
-      invalidToken: 'Invalid token format (expected 64 hex characters)',
+      invalidToken: 'Invalid token format',
       success: 'OAuth authentication configured!',
     },
     logout: {

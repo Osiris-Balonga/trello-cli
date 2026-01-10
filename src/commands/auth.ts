@@ -126,27 +126,42 @@ function createStatusCommand(): Command {
 async function handleApiKeyAuth(): Promise<void> {
   logger.print(chalk.bold(`\n🔐 ${t('auth.title')}\n`));
   logger.print(t('auth.instructions.intro'));
-  logger.print(t('auth.instructions.step1'));
-  logger.print(t('auth.instructions.step2'));
-  logger.print(t('auth.instructions.step3'));
-  logger.print(t('auth.instructions.step4'));
-  logger.print(t('auth.instructions.step5') + '\n');
+  logger.print(chalk.cyan('https://trello.com/app-key\n'));
 
   const apiKey = await input({
     message: t('auth.prompts.apiKey'),
     validate: (value) => {
-      if (!value || value.trim().length === 0) {
-        return t('auth.validation.apiKeyRequired');
+      if (!validateApiKey(value)) {
+        return t('auth.validation.apiKeyInvalid');
       }
       return true;
     },
   });
 
+  const authUrl = generateAuthorizationUrl(apiKey.trim(), {
+    appName: 'Trello CLI',
+    scope: 'read,write',
+    expiration: 'never',
+  });
+
+  logger.print('');
+  logger.print(t('auth.instructions.tokenSteps'));
+  logger.print(chalk.cyan(`\n${authUrl}\n`));
+
+  const shouldOpen = await confirm({
+    message: t('auth.prompts.openBrowser'),
+    default: true,
+  });
+
+  if (shouldOpen) {
+    await open(authUrl);
+  }
+
   const token = await input({
-    message: t('auth.prompts.token'),
+    message: t('auth.prompts.pasteToken'),
     validate: (value) => {
-      if (!value || value.trim().length === 0) {
-        return t('auth.validation.tokenRequired');
+      if (!validateToken(value)) {
+        return t('auth.validation.tokenInvalid');
       }
       return true;
     },
