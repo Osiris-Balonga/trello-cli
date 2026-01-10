@@ -5,6 +5,7 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import { formatDate, formatDueDate } from '../utils/display.js';
 import type { Cache } from '../core/cache.js';
 
@@ -54,10 +55,10 @@ async function handleWatch(
     const card = cards[cardNumber - 1];
     let lastState = JSON.stringify(card);
 
-    console.log(
+    logger.print(
       chalk.bold.cyan(`\n${t('watch.watching')}: "${card.name}"\n`)
     );
-    console.log(chalk.gray(`${t('watch.pressCtrlC')}\n`));
+    logger.print(chalk.gray(`${t('watch.pressCtrlC')}\n`));
 
     await displayCardStatus(client, card.id, cache);
 
@@ -66,32 +67,32 @@ async function handleWatch(
         const updatedCard = await client.cards.get(card.id);
         const currentState = JSON.stringify(updatedCard);
 
-        console.clear();
-        console.log(
+        logger.clear();
+        logger.print(
           chalk.bold.cyan(`\n${t('watch.watching')}: "${updatedCard.name}"\n`)
         );
-        console.log(chalk.gray(`${t('watch.pressCtrlC')}\n`));
+        logger.print(chalk.gray(`${t('watch.pressCtrlC')}\n`));
 
         if (currentState !== lastState) {
-          console.log(chalk.yellow(`${t('watch.changed')}\n`));
+          logger.print(chalk.yellow(`${t('watch.changed')}\n`));
           lastState = currentState;
         }
 
         await displayCardStatus(client, card.id, cache);
 
-        console.log(
+        logger.print(
           chalk.gray(
             `\n${t('watch.refreshing', { seconds: intervalSeconds })}...`
           )
         );
       } catch {
-        console.log(chalk.red(t('watch.error')));
+        logger.print(chalk.red(t('watch.error')));
       }
     }, intervalSeconds * 1000);
 
     process.on('SIGINT', () => {
       clearInterval(intervalId);
-      console.log(chalk.gray(`\n\n${t('watch.stopped')}`));
+      logger.print(chalk.gray(`\n\n${t('watch.stopped')}`));
       process.exit(0);
     });
 
@@ -120,10 +121,10 @@ async function displayCardStatus(
   const comments = await client.cards.getComments(cardId);
 
   const listName = getListNameById(card.idList, cache);
-  console.log(`${t('watch.status')}: ${listName}`);
+  logger.print(`${t('watch.status')}: ${listName}`);
 
   if (card.due) {
-    console.log(`${t('watch.due')}: ${formatDueDate(card.due)}`);
+    logger.print(`${t('watch.due')}: ${formatDueDate(card.due)}`);
   }
 
   if (card.idMembers?.length > 0) {
@@ -132,13 +133,13 @@ async function displayCardStatus(
       const member = Object.values(members).find((m) => m.id === id);
       return member ? `@${member.username}` : id;
     });
-    console.log(`${t('watch.members')}: ${memberNames.join(', ')}`);
+    logger.print(`${t('watch.members')}: ${memberNames.join(', ')}`);
   }
 
-  console.log(`${t('watch.comments')}: ${comments.length}`);
+  logger.print(`${t('watch.comments')}: ${comments.length}`);
 
   if (comments.length > 0) {
-    console.log(chalk.gray(`\n${t('watch.recentComments')}:`));
+    logger.print(chalk.gray(`\n${t('watch.recentComments')}:`));
     const recentComments = comments.slice(0, 3);
     for (const comment of recentComments) {
       const date = formatDate(comment.date);
@@ -146,11 +147,11 @@ async function displayCardStatus(
       const text = comment.data?.text || '';
       const truncatedText =
         text.length > 50 ? `${text.substring(0, 50)}...` : text;
-      console.log(chalk.gray(`  [${date}] @${author}: ${truncatedText}`));
+      logger.print(chalk.gray(`  [${date}] @${author}: ${truncatedText}`));
     }
   }
 
-  console.log(
+  logger.print(
     chalk.gray(
       `\n${t('watch.lastUpdated')}: ${formatDate(new Date().toISOString())}`
     )

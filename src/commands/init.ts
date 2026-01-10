@@ -7,6 +7,7 @@ import { Cache } from '../core/cache.js';
 import { TrelloError } from '../utils/errors.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 export function createInitCommand(): Command {
   const init = new Command('init');
@@ -55,7 +56,7 @@ export function createInitCommand(): Command {
 
         if (lists.length < 3) {
           spinner.warn(t('init.lessLists'));
-          console.log(
+          logger.print(
             chalk.yellow(t('init.lessListsWarning'))
           );
         }
@@ -85,16 +86,16 @@ export function createInitCommand(): Command {
         cache.updateSyncTime();
         await cache.save();
 
-        console.log(
+        logger.print(
           chalk.green(
             `\n✓ ${t('init.success', { name: selectedBoard.name })}`
           )
         );
-        console.log(
+        logger.print(
           chalk.gray(t('init.configSaved', { path: `${process.cwd()}/.trello-cli.json` }))
         );
-        console.log(chalk.gray(t('init.membersCached', { count: members.length })));
-        console.log(chalk.gray(`${t('init.labelsCached', { count: labels.length })}\n`));
+        logger.print(chalk.gray(t('init.membersCached', { count: members.length })));
+        logger.print(chalk.gray(`${t('init.labelsCached', { count: labels.length })}\n`));
       } catch (error) {
         spinner.fail(t('init.failed'));
         handleCommandError(error);

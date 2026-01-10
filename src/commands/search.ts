@@ -5,6 +5,7 @@ import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import type { Card, List } from '../api/types.js';
 
 interface SearchOptions {
@@ -46,7 +47,7 @@ async function handleSearch(
 
     if (!boardId) {
       spinner.fail();
-      console.log(chalk.red(t('errors.cacheNotFound')));
+      logger.print(chalk.red(t('errors.cacheNotFound')));
       return;
     }
 
@@ -105,11 +106,11 @@ async function handleSearch(
     spinner.stop();
 
     if (filtered.length === 0) {
-      console.log(chalk.yellow(t('search.noResults', { query })));
+      logger.print(chalk.yellow(t('search.noResults', { query })));
       return;
     }
 
-    console.log(chalk.green(t('search.found', { count: filtered.length, query })));
+    logger.print(chalk.green(t('search.found', { count: filtered.length, query })));
     displayFilteredCards(filtered, lists);
   } catch (error) {
     spinner.fail(t('search.failed'));
@@ -150,12 +151,12 @@ function displayFilteredCards(
     const list = lists[alias];
     const listName = list?.name || 'Other';
 
-    console.log(chalk.bold(`\n${listName} (${listCards.length})`));
+    logger.print(chalk.bold(`\n${listName} (${listCards.length})`));
 
     listCards.forEach((card, index) => {
       const num = chalk.gray(`${index + 1}.`);
       const title = card.name;
-      console.log(`  ${num} ${title}`);
+      logger.print(`  ${num} ${title}`);
 
       if (card.due) {
         const dueDate = new Date(card.due);
@@ -170,10 +171,10 @@ function displayFilteredCards(
           dueStr = chalk.white(`${t('search.due')} ${dueStr}`);
         }
 
-        console.log(`      📅 ${dueStr}`);
+        logger.print(`      📅 ${dueStr}`);
       }
     });
   }
 
-  console.log(chalk.gray(`\n${t('search.total', { count: cards.length })}\n`));
+  logger.print(chalk.gray(`\n${t('search.total', { count: cards.length })}\n`));
 }

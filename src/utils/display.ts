@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { format, formatDistanceToNow, isPast, isToday, isThisWeek } from 'date-fns';
 import type { Card, List } from '../api/types.js';
+import { logger } from './logger.js';
 
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -34,14 +35,14 @@ export function displayCardsByList(
     const listCards = cards.filter((c) => c.idList === list.id);
     if (listCards.length === 0) continue;
 
-    console.log(chalk.bold(`\n${list.name} (${listCards.length})`));
+    logger.print(chalk.bold(`\n${list.name} (${listCards.length})`));
 
     listCards.forEach((card, index) => {
       const num = chalk.gray(`${index + 1}.`);
       const checkbox = card.closed ? chalk.gray('[✓]') : '[ ]';
       const title = card.closed ? chalk.gray(card.name) : card.name;
 
-      console.log(`  ${num} ${checkbox} ${title}`);
+      logger.print(`  ${num} ${checkbox} ${title}`);
 
       if (card.due) {
         const dueDate = new Date(card.due);
@@ -56,10 +57,10 @@ export function displayCardsByList(
           dueStr = chalk.white(`Due: ${dueStr}`);
         }
 
-        console.log(`      📅 ${dueStr}`);
+        logger.print(`      📅 ${dueStr}`);
       }
     });
   }
 
-  console.log(chalk.gray(`\nTotal: ${cards.length} cards\n`));
+  logger.print(chalk.gray(`\nTotal: ${cards.length} cards\n`));
 }

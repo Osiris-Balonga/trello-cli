@@ -7,6 +7,7 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 const LABEL_COLORS: Record<string, string> = {
   green: '#61bd4f',
@@ -78,11 +79,11 @@ export function createLabelsCommand(): Command {
         const labelEntries = Object.entries(labelsData);
 
         if (labelEntries.length === 0) {
-          console.log(chalk.yellow(`\n${t('labels.noLabels')}`));
+          logger.print(chalk.yellow(`\n${t('labels.noLabels')}`));
           return;
         }
 
-        console.log(chalk.cyan(`\n🏷️  ${t('labels.title', { count: labelEntries.length })}\n`));
+        logger.print(chalk.cyan(`\n🏷️  ${t('labels.title', { count: labelEntries.length })}\n`));
 
         const table = new Table({
           head: [
@@ -101,16 +102,16 @@ export function createLabelsCommand(): Command {
           ]);
         });
 
-        console.log(table.toString());
-        console.log();
+        logger.print(table.toString());
+        logger.newline();
 
-        console.log(chalk.gray(t('labels.availableColors')));
-        console.log(
+        logger.print(chalk.gray(t('labels.availableColors')));
+        logger.print(
           chalk.gray(
             Object.keys(LABEL_COLORS).join(', ')
           )
         );
-        console.log();
+        logger.newline();
       } catch (error) {
         handleCommandError(error);
       }

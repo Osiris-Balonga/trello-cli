@@ -7,6 +7,7 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 export function createMoveCommand(): Command {
   const move = new Command('move');
@@ -66,7 +67,7 @@ export function createMoveCommand(): Command {
         await client.cards.move(card.id, list.id);
 
         moveSpinner.succeed(`✓ ${t('move.success', { name: card.name, list: list.name })}`);
-        console.log(chalk.gray(`${t('common.url')} ${card.shortUrl}`));
+        logger.print(chalk.gray(`${t('common.url')} ${card.shortUrl}`));
       } catch (error) {
         handleCommandError(error);
       }

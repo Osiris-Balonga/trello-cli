@@ -8,6 +8,7 @@ import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { Resolver } from '../core/resolver.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import type { UpdateCardParams, Card } from '../api/types.js';
 
 export function createUpdateCommand(): Command {
@@ -73,7 +74,7 @@ export function createUpdateCommand(): Command {
             options.unarchive;
 
           if (!hasOptions) {
-            console.log(chalk.cyan(`\n${t('update.title', { name: card.name })}\n`));
+            logger.print(chalk.cyan(`\n${t('update.title', { name: card.name })}\n`));
 
             const newName = await input({
               message: t('update.prompts.newTitle'),
@@ -89,7 +90,7 @@ export function createUpdateCommand(): Command {
             if (newDesc.trim()) options.desc = newDesc.trim();
 
             if (!options.name && !options.desc) {
-              console.log(chalk.yellow(`\n${t('update.noChanges')}`));
+              logger.print(chalk.yellow(`\n${t('update.noChanges')}`));
               return;
             }
           }
@@ -152,7 +153,7 @@ export function createUpdateCommand(): Command {
           }
 
           if (Object.keys(params).length === 0) {
-            console.log(chalk.yellow(`\n${t('update.noChangesToApply')}`));
+            logger.print(chalk.yellow(`\n${t('update.noChangesToApply')}`));
             return;
           }
 
@@ -160,7 +161,7 @@ export function createUpdateCommand(): Command {
           const updatedCard = await client.cards.update(card.id, params);
           updateSpinner.succeed(t('update.success', { name: updatedCard.name }));
 
-          console.log(chalk.gray(`${t('common.url')} ${updatedCard.shortUrl}`));
+          logger.print(chalk.gray(`${t('common.url')} ${updatedCard.shortUrl}`));
 
           const changes: string[] = [];
           if (params.name) changes.push(t('update.changes.title'));
@@ -172,7 +173,7 @@ export function createUpdateCommand(): Command {
           if (params.closed !== undefined)
             changes.push(params.closed ? t('update.changes.archived') : t('update.changes.unarchived'));
 
-          console.log(chalk.gray(t('update.changed', { changes: changes.join(', ') })));
+          logger.print(chalk.gray(t('update.changed', { changes: changes.join(', ') })));
         } catch (error) {
           handleCommandError(error);
         }

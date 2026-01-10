@@ -13,6 +13,7 @@ import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import type { Card } from '../api/types.js';
 
 interface DueOptions {
@@ -52,7 +53,7 @@ async function handleDue(options: DueOptions): Promise<void> {
 
     if (!boardId) {
       spinner.fail();
-      console.log(chalk.red(t('errors.cacheNotFound')));
+      logger.print(chalk.red(t('errors.cacheNotFound')));
       return;
     }
 
@@ -70,7 +71,7 @@ async function handleDue(options: DueOptions): Promise<void> {
     spinner.stop();
 
     if (cardsWithDue.length === 0) {
-      console.log(chalk.yellow(t('due.noCards')));
+      logger.print(chalk.yellow(t('due.noCards')));
       return;
     }
 
@@ -89,7 +90,7 @@ async function handleDue(options: DueOptions): Promise<void> {
       (c) => !isThisWeek(c.dueDate) && !isBefore(c.dueDate, now)
     );
 
-    console.log(chalk.bold(`\n${t('due.title')}\n`));
+    logger.print(chalk.bold(`\n${t('due.title')}\n`));
 
     // Display based on options
     if (options.overdue) {
@@ -113,7 +114,7 @@ async function handleDue(options: DueOptions): Promise<void> {
         displayCategory(`📅 ${t('due.later')}`, later, now);
     }
 
-    console.log(
+    logger.print(
       chalk.gray(`\n${t('due.total', { count: cardsWithDue.length })}\n`)
     );
   } catch (error) {
@@ -128,11 +129,11 @@ function displayCategory(
   now: Date
 ): void {
   if (cards.length === 0) {
-    console.log(chalk.yellow(`${title}: ${t('due.noCards')}`));
+    logger.print(chalk.yellow(`${title}: ${t('due.noCards')}`));
     return;
   }
 
-  console.log(chalk.bold(`${title} (${cards.length})`));
+  logger.print(chalk.bold(`${title} (${cards.length})`));
 
   cards.forEach((card, index) => {
     const num = chalk.gray(`${index + 1}.`);
@@ -148,9 +149,9 @@ function displayCategory(
     }
 
     const dateStr = chalk.gray(card.dueDate.toLocaleDateString());
-    console.log(`  ${num} ${card.name}`);
-    console.log(`      📅 ${dateStr} (${dueInfo})`);
+    logger.print(`  ${num} ${card.name}`);
+    logger.print(`      📅 ${dateStr} (${dueInfo})`);
   });
 
-  console.log();
+  logger.newline();
 }

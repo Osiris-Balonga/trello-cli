@@ -6,6 +6,7 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import {
   exportToJson,
   exportToCsv,
@@ -92,7 +93,7 @@ async function handleExport(
       spinner.succeed(t('export.success', { file: options.output }));
     } else {
       spinner.stop();
-      console.log(content);
+      logger.print(content);
     }
   } catch (error) {
     handleCommandError(error);

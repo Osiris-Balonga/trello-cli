@@ -8,6 +8,7 @@ import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { formatDate } from '../utils/display.js';
+import { logger } from '../utils/logger.js';
 
 interface CommentOptions {
   list?: boolean;
@@ -54,14 +55,14 @@ async function handleAddComment(cardNumber: number, text?: string): Promise<void
     const card = cards[cardNumber - 1];
 
     if (!text) {
-      console.log(chalk.cyan(`\n${t('common.card')} "${card.name}"\n`));
+      logger.print(chalk.cyan(`\n${t('common.card')} "${card.name}"\n`));
       text = await input({
         message: t('comment.enterText'),
       });
     }
 
     if (!text.trim()) {
-      console.log(chalk.yellow(t('comment.empty')));
+      logger.print(chalk.yellow(t('comment.empty')));
       return;
     }
 
@@ -98,18 +99,18 @@ async function handleListComments(cardNumber: number): Promise<void> {
     const comments = await client.cards.getComments(card.id);
     spinner.stop();
 
-    console.log(chalk.bold(`\n${t('comment.title', { name: card.name })}\n`));
+    logger.print(chalk.bold(`\n${t('comment.title', { name: card.name })}\n`));
 
     if (comments.length === 0) {
-      console.log(chalk.gray(t('comment.noComments')));
+      logger.print(chalk.gray(t('comment.noComments')));
       return;
     }
 
     for (const comment of comments) {
       const date = formatDate(comment.date);
       const author = comment.memberCreator?.username || 'unknown';
-      console.log(chalk.gray(`[${date}] @${author}:`));
-      console.log(`  ${comment.data.text}\n`);
+      logger.print(chalk.gray(`[${date}] @${author}:`));
+      logger.print(`  ${comment.data.text}\n`);
     }
   } catch (error) {
     handleCommandError(error);

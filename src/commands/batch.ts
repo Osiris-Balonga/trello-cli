@@ -7,6 +7,7 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 interface BatchOptions {
   dryRun?: boolean;
@@ -103,7 +104,7 @@ async function handleBatchMove(
 
     const list = cache.getListByAlias(listAlias);
     if (!list) {
-      console.log(chalk.red(t('batch.listNotFound', { list: listAlias })));
+      logger.print(chalk.red(t('batch.listNotFound', { list: listAlias })));
       return;
     }
 
@@ -115,7 +116,7 @@ async function handleBatchMove(
       (n) => n < 1 || n > allCards.length || isNaN(n)
     );
     if (invalidCards.length > 0) {
-      console.log(
+      logger.print(
         chalk.red(t('batch.invalidCards', { cards: invalidCards.join(', ') }))
       );
       return;
@@ -124,9 +125,9 @@ async function handleBatchMove(
     const targetCards = cardNums.map((n) => allCards[n - 1]);
 
     if (options.dryRun) {
-      console.log(chalk.cyan(`\n${t('batch.dryRun')}:`));
+      logger.print(chalk.cyan(`\n${t('batch.dryRun')}:`));
       for (const card of targetCards) {
-        console.log(`  • "${card.name}" → ${list.name}`);
+        logger.print(`  • "${card.name}" → ${list.name}`);
       }
       return;
     }
@@ -178,7 +179,7 @@ async function handleBatchArchive(
       (n) => n < 1 || n > allCards.length || isNaN(n)
     );
     if (invalidCards.length > 0) {
-      console.log(
+      logger.print(
         chalk.red(t('batch.invalidCards', { cards: invalidCards.join(', ') }))
       );
       return;
@@ -188,9 +189,9 @@ async function handleBatchArchive(
     const action = archive ? 'archive' : 'unarchive';
 
     if (options.dryRun) {
-      console.log(chalk.cyan(`\n${t('batch.dryRun')}:`));
+      logger.print(chalk.cyan(`\n${t('batch.dryRun')}:`));
       for (const card of targetCards) {
-        console.log(`  • ${action}: "${card.name}"`);
+        logger.print(`  • ${action}: "${card.name}"`);
       }
       return;
     }
@@ -243,7 +244,7 @@ async function handleBatchLabel(
 
     const label = cache.getLabelByName(labelName);
     if (!label) {
-      console.log(chalk.red(t('batch.labelNotFound', { label: labelName })));
+      logger.print(chalk.red(t('batch.labelNotFound', { label: labelName })));
       return;
     }
 
@@ -255,7 +256,7 @@ async function handleBatchLabel(
       (n) => n < 1 || n > allCards.length || isNaN(n)
     );
     if (invalidCards.length > 0) {
-      console.log(
+      logger.print(
         chalk.red(t('batch.invalidCards', { cards: invalidCards.join(', ') }))
       );
       return;
@@ -264,10 +265,10 @@ async function handleBatchLabel(
     const targetCards = cardNums.map((n) => allCards[n - 1]);
 
     if (options.dryRun) {
-      console.log(chalk.cyan(`\n${t('batch.dryRun')}:`));
+      logger.print(chalk.cyan(`\n${t('batch.dryRun')}:`));
       for (const card of targetCards) {
         const actionWord = action === 'add' ? 'to' : 'from';
-        console.log(
+        logger.print(
           `  • ${action} label "${labelName}" ${actionWord}: "${card.name}"`
         );
       }
@@ -321,7 +322,7 @@ async function handleBatchAssign(
     const cleanUsername = username.replace('@', '');
     const member = cache.getMemberByUsername(cleanUsername);
     if (!member) {
-      console.log(chalk.red(t('batch.memberNotFound', { member: username })));
+      logger.print(chalk.red(t('batch.memberNotFound', { member: username })));
       return;
     }
 
@@ -333,7 +334,7 @@ async function handleBatchAssign(
       (n) => n < 1 || n > allCards.length || isNaN(n)
     );
     if (invalidCards.length > 0) {
-      console.log(
+      logger.print(
         chalk.red(t('batch.invalidCards', { cards: invalidCards.join(', ') }))
       );
       return;
@@ -342,10 +343,10 @@ async function handleBatchAssign(
     const targetCards = cardNums.map((n) => allCards[n - 1]);
 
     if (options.dryRun) {
-      console.log(chalk.cyan(`\n${t('batch.dryRun')}:`));
+      logger.print(chalk.cyan(`\n${t('batch.dryRun')}:`));
       for (const card of targetCards) {
         const actionWord = action === 'add' ? 'to' : 'from';
-        console.log(
+        logger.print(
           `  • ${action} @${cleanUsername} ${actionWord}: "${card.name}"`
         );
       }

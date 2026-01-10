@@ -7,6 +7,7 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 export function createMembersCommand(): Command {
   const members = new Command('members');
@@ -45,11 +46,11 @@ export function createMembersCommand(): Command {
         const memberEntries = Object.entries(membersData);
 
         if (memberEntries.length === 0) {
-          console.log(chalk.yellow(`\n${t('members.noMembers')}`));
+          logger.print(chalk.yellow(`\n${t('members.noMembers')}`));
           return;
         }
 
-        console.log(chalk.cyan(`\n📋 ${t('members.title', { count: memberEntries.length })}\n`));
+        logger.print(chalk.cyan(`\n📋 ${t('members.title', { count: memberEntries.length })}\n`));
 
         const table = new Table({
           head: [
@@ -68,8 +69,8 @@ export function createMembersCommand(): Command {
           ]);
         });
 
-        console.log(table.toString());
-        console.log();
+        logger.print(table.toString());
+        logger.newline();
       } catch (error) {
         handleCommandError(error);
       }

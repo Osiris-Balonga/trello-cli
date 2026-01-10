@@ -6,6 +6,7 @@ import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 export function createBoardCommand(): Command {
   const board = new Command('board');
@@ -36,7 +37,7 @@ async function handleBoardInfo(): Promise<void> {
 
     if (!boardId) {
       spinner.fail();
-      console.log(chalk.red(t('errors.cacheNotFound')));
+      logger.print(chalk.red(t('errors.cacheNotFound')));
       return;
     }
 
@@ -61,31 +62,31 @@ async function handleBoardInfo(): Promise<void> {
     const labelCount = Object.keys(labels).length;
     const listCount = Object.keys(lists).length;
 
-    console.log(chalk.bold(`\n╔${'═'.repeat(58)}╗`));
-    console.log(chalk.bold(`║  ${board.name.padEnd(55)} ║`));
-    console.log(chalk.bold(`╚${'═'.repeat(58)}╝\n`));
+    logger.print(chalk.bold(`\n╔${'═'.repeat(58)}╗`));
+    logger.print(chalk.bold(`║  ${board.name.padEnd(55)} ║`));
+    logger.print(chalk.bold(`╚${'═'.repeat(58)}╝\n`));
 
     if (board.desc) {
-      console.log(chalk.gray(t('board.info.description')));
-      console.log(board.desc + '\n');
+      logger.print(chalk.gray(t('board.info.description')));
+      logger.print(board.desc + '\n');
     }
 
-    console.log(chalk.gray(t('board.info.statistics')));
-    console.log(`📋 ${t('board.info.lists')}    ${listCount}`);
-    console.log(`👥 ${t('board.info.members')}  ${memberCount}`);
-    console.log(`🏷️  ${t('board.info.labels')}   ${labelCount}`);
-    console.log(`📝 ${t('board.info.cards')}    ${openCards.length}`);
+    logger.print(chalk.gray(t('board.info.statistics')));
+    logger.print(`📋 ${t('board.info.lists')}    ${listCount}`);
+    logger.print(`👥 ${t('board.info.members')}  ${memberCount}`);
+    logger.print(`🏷️  ${t('board.info.labels')}   ${labelCount}`);
+    logger.print(`📝 ${t('board.info.cards')}    ${openCards.length}`);
     if (overdueCards.length > 0) {
-      console.log(chalk.red(`⚠️  ${t('board.info.overdue')}  ${overdueCards.length}`));
+      logger.print(chalk.red(`⚠️  ${t('board.info.overdue')}  ${overdueCards.length}`));
     }
 
-    console.log(chalk.gray(`\n🔗 ${board.url}`));
+    logger.print(chalk.gray(`\n🔗 ${board.url}`));
 
     const lastSync = cache.getLastSync();
     const lastSyncDisplay = lastSync
       ? new Date(lastSync).toLocaleString()
       : t('common.notSet');
-    console.log(chalk.gray(`\n${t('board.info.lastSync')} ${lastSyncDisplay}\n`));
+    logger.print(chalk.gray(`\n${t('board.info.lastSync')} ${lastSyncDisplay}\n`));
   } catch (error) {
     spinner.fail();
     handleCommandError(error);

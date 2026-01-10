@@ -5,6 +5,7 @@ import { getSupportedLanguages, isValidLanguage } from '../utils/locale.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 export function createConfigCommand(): Command {
   const configCmd = new Command('config');
@@ -19,10 +20,10 @@ export function createConfigCommand(): Command {
       try {
         switch (key) {
           case 'language':
-            console.log(t('config.get.language', { lang: config.getLanguage() }));
+            logger.print(t('config.get.language', { lang: config.getLanguage() }));
             break;
           case 'authMode':
-            console.log(t('config.get.authMode', { mode: config.getAuthMode() }));
+            logger.print(t('config.get.authMode', { mode: config.getAuthMode() }));
             break;
           default:
             throw new TrelloValidationError(
@@ -52,7 +53,7 @@ export function createConfigCommand(): Command {
               );
             }
             config.setLanguage(value);
-            console.log(chalk.green(`✓ ${t('config.set.languageUpdated', { lang: value })}`));
+            logger.print(chalk.green(`✓ ${t('config.set.languageUpdated', { lang: value })}`));
             break;
           }
           default:
@@ -71,10 +72,10 @@ export function createConfigCommand(): Command {
     .description(t('cli.subcommands.config.list'))
     .action(() => {
       try {
-        console.log(chalk.bold(`\n⚙️  ${t('config.list.title')}\n`));
-        console.log(t('config.get.language', { lang: config.getLanguage() }));
-        console.log(t('config.get.authMode', { mode: config.getAuthMode() }));
-        console.log(chalk.gray(`\n${t('common.configFile')} ${config.getPath()}\n`));
+        logger.print(chalk.bold(`\n⚙️  ${t('config.list.title')}\n`));
+        logger.print(t('config.get.language', { lang: config.getLanguage() }));
+        logger.print(t('config.get.authMode', { mode: config.getAuthMode() }));
+        logger.print(chalk.gray(`\n${t('common.configFile')} ${config.getPath()}\n`));
       } catch (error) {
         handleCommandError(error);
       }

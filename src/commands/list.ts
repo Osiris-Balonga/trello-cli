@@ -7,6 +7,7 @@ import { displayCardsByList } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 export function createListCommand(): Command {
   const list = new Command('list');
@@ -29,7 +30,7 @@ export function createListCommand(): Command {
 
         spinner.succeed(t('list.loaded'));
 
-        console.log(chalk.bold(`\n${cache.getBoardName()}`));
+        logger.print(chalk.bold(`\n${cache.getBoardName()}`));
         displayCardsByList(cards, cache.getLists());
       } catch (error) {
         spinner.fail(t('list.failed'));

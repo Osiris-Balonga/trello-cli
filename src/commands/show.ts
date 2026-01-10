@@ -6,6 +6,7 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import type { Card } from '../api/types.js';
 
 function formatDate(dateStr: string | null, tFn: typeof t): string {
@@ -97,31 +98,31 @@ export function createShowCommand(): Command {
         const labels = cache.getLabels();
         const members = cache.getMembers();
 
-        console.log(chalk.bold.cyan(`\n📋 ${card.name}\n`));
-        console.log(chalk.gray('─'.repeat(50)));
+        logger.print(chalk.bold.cyan(`\n📋 ${card.name}\n`));
+        logger.print(chalk.gray('─'.repeat(50)));
 
-        console.log(`${chalk.bold(t('show.fields.list'))}     ${getListName(card.idList, lists, t)}`);
-        console.log(`${chalk.bold(t('show.fields.due'))}      ${formatDate(card.due, t)}`);
-        console.log(`${chalk.bold(t('show.fields.labels'))}   ${formatLabels(card.idLabels, labels, t)}`);
-        console.log(`${chalk.bold(t('show.fields.members'))}  ${formatMembers(card.idMembers, members, t)}`);
+        logger.print(`${chalk.bold(t('show.fields.list'))}     ${getListName(card.idList, lists, t)}`);
+        logger.print(`${chalk.bold(t('show.fields.due'))}      ${formatDate(card.due, t)}`);
+        logger.print(`${chalk.bold(t('show.fields.labels'))}   ${formatLabels(card.idLabels, labels, t)}`);
+        logger.print(`${chalk.bold(t('show.fields.members'))}  ${formatMembers(card.idMembers, members, t)}`);
 
-        console.log(chalk.gray('\n─'.repeat(50)));
+        logger.print(chalk.gray('\n─'.repeat(50)));
 
         if (card.desc && card.desc.trim()) {
-          console.log(chalk.bold(`\n${t('show.fields.description')}`));
-          console.log(card.desc);
+          logger.print(chalk.bold(`\n${t('show.fields.description')}`));
+          logger.print(card.desc);
         } else {
-          console.log(chalk.gray(`\n${t('show.fields.noDescription')}`));
+          logger.print(chalk.gray(`\n${t('show.fields.noDescription')}`));
         }
 
-        console.log(chalk.gray('\n─'.repeat(50)));
-        console.log(chalk.gray(`${t('common.url')} ${card.shortUrl}`));
-        console.log(
+        logger.print(chalk.gray('\n─'.repeat(50)));
+        logger.print(chalk.gray(`${t('common.url')} ${card.shortUrl}`));
+        logger.print(
           chalk.gray(
             t('show.fields.lastActivity', { date: new Date(card.dateLastActivity).toLocaleString() })
           )
         );
-        console.log();
+        logger.newline();
       } catch (error) {
         handleCommandError(error);
       }

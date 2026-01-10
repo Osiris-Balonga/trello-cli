@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import open from 'open';
 import { config } from '../utils/config.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import {
   generateAuthorizationUrl,
   validateToken,
@@ -48,13 +49,13 @@ function createOAuthCommand(): Command {
 }
 
 async function handleOAuthAuth(): Promise<void> {
-  console.log(chalk.bold(`\n🔐 ${t('auth.oauth.title')}\n`));
+  logger.print(chalk.bold(`\n🔐 ${t('auth.oauth.title')}\n`));
 
   let apiKey = await config.getOrgApiKey();
 
   if (!apiKey) {
-    console.log(t('auth.oauth.apiKeyExplanation'));
-    console.log('');
+    logger.print(t('auth.oauth.apiKeyExplanation'));
+    logger.print('');
 
     apiKey = await input({
       message: t('auth.oauth.enterOrgApiKey'),
@@ -68,7 +69,7 @@ async function handleOAuthAuth(): Promise<void> {
 
     await config.setOrgApiKey(apiKey.trim());
   } else {
-    console.log(
+    logger.print(
       chalk.gray(t('auth.oauth.usingStoredApiKey', { key: apiKey.slice(0, 8) }))
     );
   }
@@ -79,9 +80,9 @@ async function handleOAuthAuth(): Promise<void> {
     expiration: 'never',
   });
 
-  console.log('');
-  console.log(t('auth.oauth.instructions'));
-  console.log(chalk.cyan(`\n${authUrl}\n`));
+  logger.print('');
+  logger.print(t('auth.oauth.instructions'));
+  logger.print(chalk.cyan(`\n${authUrl}\n`));
 
   const shouldOpen = await confirm({
     message: t('auth.oauth.openBrowser'),
@@ -104,8 +105,8 @@ async function handleOAuthAuth(): Promise<void> {
 
   await config.setOAuthAuth(token.trim(), apiKey.trim());
 
-  console.log(chalk.green(`\n✓ ${t('auth.oauth.success')}`));
-  console.log(
+  logger.print(chalk.green(`\n✓ ${t('auth.oauth.success')}`));
+  logger.print(
     chalk.gray(t('auth.configSaved', { path: config.getPath() }) + '\n')
   );
 }
@@ -123,13 +124,13 @@ function createStatusCommand(): Command {
 }
 
 async function handleApiKeyAuth(): Promise<void> {
-  console.log(chalk.bold(`\n🔐 ${t('auth.title')}\n`));
-  console.log(t('auth.instructions.intro'));
-  console.log(t('auth.instructions.step1'));
-  console.log(t('auth.instructions.step2'));
-  console.log(t('auth.instructions.step3'));
-  console.log(t('auth.instructions.step4'));
-  console.log(t('auth.instructions.step5') + '\n');
+  logger.print(chalk.bold(`\n🔐 ${t('auth.title')}\n`));
+  logger.print(t('auth.instructions.intro'));
+  logger.print(t('auth.instructions.step1'));
+  logger.print(t('auth.instructions.step2'));
+  logger.print(t('auth.instructions.step3'));
+  logger.print(t('auth.instructions.step4'));
+  logger.print(t('auth.instructions.step5') + '\n');
 
   const apiKey = await input({
     message: t('auth.prompts.apiKey'),
@@ -153,40 +154,40 @@ async function handleApiKeyAuth(): Promise<void> {
 
   await config.setApiKeyAuth(apiKey.trim(), token.trim());
 
-  console.log(chalk.green(`\n✓ ${t('auth.success')}`));
-  console.log(chalk.gray(t('auth.configSaved', { path: config.getPath() }) + '\n'));
+  logger.print(chalk.green(`\n✓ ${t('auth.success')}`));
+  logger.print(chalk.gray(t('auth.configSaved', { path: config.getPath() }) + '\n'));
 }
 
 async function handleAuthStatus(): Promise<void> {
   const isAuth = await config.isAuthenticated();
   const mode = config.getAuthMode();
 
-  console.log(chalk.bold(`\n🔐 ${t('auth.status.title')}\n`));
+  logger.print(chalk.bold(`\n🔐 ${t('auth.status.title')}\n`));
 
   if (!isAuth) {
-    console.log(chalk.red(`✗ ${t('auth.status.notAuthenticated')}`));
-    console.log(chalk.gray(t('auth.status.runAuth') + '\n'));
+    logger.print(chalk.red(`✗ ${t('auth.status.notAuthenticated')}`));
+    logger.print(chalk.gray(t('auth.status.runAuth') + '\n'));
     return;
   }
 
-  console.log(chalk.green(`✓ ${t('auth.status.authenticated')}`));
-  console.log(t('auth.status.mode', { mode }));
+  logger.print(chalk.green(`✓ ${t('auth.status.authenticated')}`));
+  logger.print(t('auth.status.mode', { mode }));
 
   if (mode === 'apikey') {
     const auth = await config.getApiKeyAuth();
     if (auth) {
-      console.log(t('auth.status.apiKey', { key: auth.key.slice(0, 8) }));
-      console.log(t('auth.status.token', { token: auth.token.slice(0, 8) }));
+      logger.print(t('auth.status.apiKey', { key: auth.key.slice(0, 8) }));
+      logger.print(t('auth.status.token', { token: auth.token.slice(0, 8) }));
     }
   } else if (mode === 'oauth') {
     const auth = await config.getOAuthAuth();
     if (auth) {
-      console.log(t('auth.status.orgApiKey', { key: auth.orgApiKey.slice(0, 8) }));
-      console.log(t('auth.status.token', { token: auth.token.slice(0, 8) }));
+      logger.print(t('auth.status.orgApiKey', { key: auth.orgApiKey.slice(0, 8) }));
+      logger.print(t('auth.status.token', { token: auth.token.slice(0, 8) }));
     }
   }
 
-  console.log(chalk.gray('\n' + t('auth.status.config', { path: config.getPath() }) + '\n'));
+  logger.print(chalk.gray('\n' + t('auth.status.config', { path: config.getPath() }) + '\n'));
 }
 
 function createLogoutCommand(): Command {
@@ -206,7 +207,7 @@ async function handleLogout(force: boolean): Promise<void> {
   const isAuth = await config.isAuthenticated();
 
   if (!isAuth) {
-    console.log(chalk.yellow(`\n${t('auth.logout.notAuthenticated')}\n`));
+    logger.print(chalk.yellow(`\n${t('auth.logout.notAuthenticated')}\n`));
     return;
   }
 
@@ -217,11 +218,11 @@ async function handleLogout(force: boolean): Promise<void> {
     });
 
     if (!confirmed) {
-      console.log(chalk.gray(t('auth.logout.cancelled')));
+      logger.print(chalk.gray(t('auth.logout.cancelled')));
       return;
     }
   }
 
   await config.clearAuth();
-  console.log(chalk.green(`\n✓ ${t('auth.logout.success')}\n`));
+  logger.print(chalk.green(`\n✓ ${t('auth.logout.success')}\n`));
 }

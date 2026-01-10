@@ -7,6 +7,7 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 
 interface DeleteOptions {
   force?: boolean;
@@ -51,10 +52,10 @@ async function handleDelete(cardNumber: number, force: boolean): Promise<void> {
       Object.values(lists).find((l) => l.id === card.idList)?.name ??
       t('common.unknown');
 
-    console.log(chalk.yellow(`\n⚠️  ${t('delete.warning')}\n`));
-    console.log(`${t('delete.cardLabel')} "${card.name}"`);
-    console.log(`${t('delete.listLabel')} ${listName}`);
-    console.log();
+    logger.print(chalk.yellow(`\n⚠️  ${t('delete.warning')}\n`));
+    logger.print(`${t('delete.cardLabel')} "${card.name}"`);
+    logger.print(`${t('delete.listLabel')} ${listName}`);
+    logger.newline();
 
     if (!force) {
       const confirmed = await confirm({
@@ -63,7 +64,7 @@ async function handleDelete(cardNumber: number, force: boolean): Promise<void> {
       });
 
       if (!confirmed) {
-        console.log(t('delete.cancelled'));
+        logger.print(t('delete.cancelled'));
         return;
       }
     }

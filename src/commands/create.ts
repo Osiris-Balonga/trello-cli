@@ -13,6 +13,7 @@ import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { suggestCardTitleFromBranch } from '../core/git.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import type { CreateCardParams } from '../api/types.js';
 
 export function createCreateCommand(): Command {
@@ -54,7 +55,7 @@ export function createCreateCommand(): Command {
 
             if (useSuggestion) {
               cardTitle = suggestion;
-              console.log(chalk.gray(t('create.git.usingBranchTitle')));
+              logger.print(chalk.gray(t('create.git.usingBranchTitle')));
             }
           }
 
@@ -113,14 +114,14 @@ export function createCreateCommand(): Command {
         const card = await client.cards.create(params as CreateCardParams);
         spinner.succeed(t('create.success', { name: card.name }));
 
-        console.log(chalk.gray(t('create.url', { url: card.shortUrl })));
+        logger.print(chalk.gray(t('create.url', { url: card.shortUrl })));
         if (params.idLabels?.length) {
-          console.log(
+          logger.print(
             chalk.gray(t('create.labels', { labels: options.labels?.join(', ') }))
           );
         }
         if (params.idMembers?.length) {
-          console.log(
+          logger.print(
             chalk.gray(
               t('create.members', { members: '@' + options.members?.join(', @') })
             )

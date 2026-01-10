@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import chalk from 'chalk';
 
 type LogLevel = 'debug' | 'info' | 'success' | 'warn' | 'error';
@@ -67,15 +66,32 @@ class Logger {
   }
 
   title(message: string): void {
+    if (this.silentMode) return;
     console.log(chalk.bold(`\n${message}\n`));
   }
 
   hint(message: string): void {
+    if (this.silentMode) return;
     console.log(chalk.gray(message));
   }
 
   newline(): void {
+    if (this.silentMode) return;
     console.log('');
+  }
+
+  clear(): void {
+    if (this.silentMode) return;
+    console.clear();
+  }
+
+  print(message: string): void {
+    if (this.silentMode) return;
+    console.log(message);
+  }
+
+  printError(message: string): void {
+    console.error(message);
   }
 
   setDebug(enabled: boolean): void {

@@ -5,6 +5,7 @@ import { loadCache } from '../utils/load-cache.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import type { CardTemplate } from '../types/config.js';
 
 export function createTemplateCommand(): Command {
@@ -52,13 +53,13 @@ async function handleCreateTemplate(templateName: string): Promise<void> {
     }
 
     if (cache.getTemplate(templateName)) {
-      console.log(
+      logger.print(
         chalk.red(t('template.alreadyExists', { name: templateName }))
       );
       return;
     }
 
-    console.log(
+    logger.print(
       chalk.cyan(`\n${t('template.creating', { name: templateName })}\n`)
     );
 
@@ -108,7 +109,7 @@ async function handleCreateTemplate(templateName: string): Promise<void> {
     };
 
     await cache.saveTemplate(templateName, templateData);
-    console.log(
+    logger.print(
       chalk.green(`\n✓ ${t('template.created', { name: templateName })}`)
     );
   } catch (error) {
@@ -128,26 +129,26 @@ async function handleListTemplates(): Promise<void> {
     const templateNames = Object.keys(templates);
 
     if (templateNames.length === 0) {
-      console.log(chalk.gray(t('template.noTemplates')));
-      console.log(chalk.gray(t('template.createHint')));
+      logger.print(chalk.gray(t('template.noTemplates')));
+      logger.print(chalk.gray(t('template.createHint')));
       return;
     }
 
-    console.log(chalk.bold(`\n${t('template.listTitle')}\n`));
+    logger.print(chalk.bold(`\n${t('template.listTitle')}\n`));
 
     for (const [key, tpl] of Object.entries(templates)) {
-      console.log(chalk.cyan(`  ${key}`));
-      console.log(`    ${tpl.name}`);
+      logger.print(chalk.cyan(`  ${key}`));
+      logger.print(`    ${tpl.name}`);
       if (tpl.labels?.length) {
-        console.log(chalk.gray(`    ${t('template.showLabels')} ${tpl.labels.join(', ')}`));
+        logger.print(chalk.gray(`    ${t('template.showLabels')} ${tpl.labels.join(', ')}`));
       }
       if (tpl.list) {
-        console.log(chalk.gray(`    ${t('template.showList')} ${tpl.list}`));
+        logger.print(chalk.gray(`    ${t('template.showList')} ${tpl.list}`));
       }
-      console.log('');
+      logger.print('');
     }
 
-    console.log(chalk.gray(`${t('template.usageHint')}`));
+    logger.print(chalk.gray(`${t('template.usageHint')}`));
   } catch (error) {
     handleCommandError(error);
   }
@@ -163,23 +164,23 @@ async function handleShowTemplate(templateName: string): Promise<void> {
 
     const template = cache.getTemplate(templateName);
     if (!template) {
-      console.log(chalk.red(t('template.notFound', { name: templateName })));
+      logger.print(chalk.red(t('template.notFound', { name: templateName })));
       return;
     }
 
-    console.log(chalk.bold(`\n${t('template.showTitle', { name: templateName })}\n`));
-    console.log(`${t('template.showName')} ${template.name}`);
+    logger.print(chalk.bold(`\n${t('template.showTitle', { name: templateName })}\n`));
+    logger.print(`${t('template.showName')} ${template.name}`);
     if (template.labels?.length) {
-      console.log(`${t('template.showLabels')} ${template.labels.join(', ')}`);
+      logger.print(`${t('template.showLabels')} ${template.labels.join(', ')}`);
     }
     if (template.list) {
-      console.log(`${t('template.showList')} ${template.list}`);
+      logger.print(`${t('template.showList')} ${template.list}`);
     }
     if (template.description) {
-      console.log(`\n${t('template.showDescription')}`);
-      console.log(chalk.gray('─'.repeat(40)));
-      console.log(template.description);
-      console.log(chalk.gray('─'.repeat(40)));
+      logger.print(`\n${t('template.showDescription')}`);
+      logger.print(chalk.gray('─'.repeat(40)));
+      logger.print(template.description);
+      logger.print(chalk.gray('─'.repeat(40)));
     }
   } catch (error) {
     handleCommandError(error);
@@ -195,12 +196,12 @@ async function handleDeleteTemplate(templateName: string): Promise<void> {
     }
 
     if (!cache.getTemplate(templateName)) {
-      console.log(chalk.red(t('template.notFound', { name: templateName })));
+      logger.print(chalk.red(t('template.notFound', { name: templateName })));
       return;
     }
 
     await cache.deleteTemplate(templateName);
-    console.log(
+    logger.print(
       chalk.green(`✓ ${t('template.deleted', { name: templateName })}`)
     );
   } catch (error) {

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import chalk from 'chalk';
 import {
   TrelloError,
@@ -94,7 +93,7 @@ export function handleCommandError(
 
     if (process.env.DEBUG === 'true' && error.stack) {
       logger.newline();
-      console.error(chalk.gray(error.stack));
+      logger.printError(chalk.gray(error.stack));
     } else {
       logger.hint('\n' + t('errors.unexpected.debugHint'));
     }

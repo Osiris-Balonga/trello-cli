@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { createTrelloClient } from '../utils/create-client.js';
 import { Cache } from '../core/cache.js';
 import { t } from '../utils/i18n.js';
+import { logger } from '../utils/logger.js';
 import { handleCommandError } from '../utils/error-handler.js';
 
 export function createSyncCommand(): Command {
@@ -24,7 +25,7 @@ async function handleSync(): Promise<void> {
 
   const boardId = cache.getBoardId();
   if (!boardId) {
-    console.log(chalk.red(t('errors.cacheNotFound')));
+    logger.print(chalk.red(t('errors.cacheNotFound')));
     return;
   }
 
@@ -68,7 +69,7 @@ async function handleSync(): Promise<void> {
       })
     );
 
-    console.log(
+    logger.print(
       chalk.gray(t('sync.lastSync', { date: new Date().toISOString() }))
     );
   } catch (error) {
