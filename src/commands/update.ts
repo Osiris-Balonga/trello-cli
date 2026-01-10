@@ -44,19 +44,19 @@ export function createUpdateCommand(): Command {
 
           if (!boardId) {
             throw new TrelloError(
-              'No board configured. Run "tt init" first.',
+              t('update.errors.notInitialized'),
               'NOT_INITIALIZED'
             );
           }
 
-          const spinner = ora('Loading cards...').start();
+          const spinner = ora(t('list.loading')).start();
           const cards = await client.cards.listByBoard(boardId);
           spinner.stop();
 
           const cardNumber = parseInt(cardNumberStr, 10);
           if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
             throw new TrelloValidationError(
-              `Invalid card number. Must be between 1 and ${cards.length}.`,
+              t('update.errors.invalidCard', { max: cards.length }),
               'cardNumber'
             );
           }
@@ -73,15 +73,15 @@ export function createUpdateCommand(): Command {
             options.unarchive;
 
           if (!hasOptions) {
-            console.log(chalk.cyan(`\nUpdating: ${card.name}\n`));
+            console.log(chalk.cyan(`\n${t('update.title', { name: card.name })}\n`));
 
             const newName = await input({
-              message: 'New title (leave empty to keep):',
+              message: t('update.prompts.newTitle'),
               default: '',
             });
 
             const newDesc = await input({
-              message: 'New description (leave empty to keep):',
+              message: t('update.prompts.newDesc'),
               default: '',
             });
 
@@ -89,7 +89,7 @@ export function createUpdateCommand(): Command {
             if (newDesc.trim()) options.desc = newDesc.trim();
 
             if (!options.name && !options.desc) {
-              console.log(chalk.yellow('\nNo changes made.'));
+              console.log(chalk.yellow(`\n${t('update.noChanges')}`));
               return;
             }
           }
@@ -99,7 +99,7 @@ export function createUpdateCommand(): Command {
           if (options.name) {
             if (options.name.length > 500) {
               throw new TrelloValidationError(
-                'Title too long (max 500 characters)',
+                t('update.validation.titleTooLong'),
                 'name'
               );
             }
@@ -109,7 +109,7 @@ export function createUpdateCommand(): Command {
           if (options.desc !== undefined) {
             if (options.desc.length > 16384) {
               throw new TrelloValidationError(
-                'Description too long (max 16384 characters)',
+                t('update.validation.descTooLong'),
                 'desc'
               );
             }
@@ -123,7 +123,7 @@ export function createUpdateCommand(): Command {
               const dueDate = new Date(options.due);
               if (isNaN(dueDate.getTime())) {
                 throw new TrelloValidationError(
-                  'Invalid date format. Use YYYY-MM-DD.',
+                  t('update.validation.invalidDate'),
                   'due'
                 );
               }
@@ -152,27 +152,27 @@ export function createUpdateCommand(): Command {
           }
 
           if (Object.keys(params).length === 0) {
-            console.log(chalk.yellow('\nNo changes to apply.'));
+            console.log(chalk.yellow(`\n${t('update.noChangesToApply')}`));
             return;
           }
 
-          const updateSpinner = ora('Updating card...').start();
+          const updateSpinner = ora(t('update.updating')).start();
           const updatedCard = await client.cards.update(card.id, params);
-          updateSpinner.succeed(`Card updated: ${updatedCard.name}`);
+          updateSpinner.succeed(t('update.success', { name: updatedCard.name }));
 
-          console.log(chalk.gray(`URL: ${updatedCard.shortUrl}`));
+          console.log(chalk.gray(`${t('common.url')} ${updatedCard.shortUrl}`));
 
           const changes: string[] = [];
-          if (params.name) changes.push('title');
-          if (params.desc !== undefined) changes.push('description');
+          if (params.name) changes.push(t('update.changes.title'));
+          if (params.desc !== undefined) changes.push(t('update.changes.description'));
           if (params.due !== undefined)
-            changes.push(params.due ? 'due date' : 'due date cleared');
-          if (params.idLabels) changes.push('labels');
-          if (params.idMembers) changes.push('members');
+            changes.push(params.due ? t('update.changes.dueDate') : t('update.changes.dueDateCleared'));
+          if (params.idLabels) changes.push(t('update.changes.labels'));
+          if (params.idMembers) changes.push(t('update.changes.members'));
           if (params.closed !== undefined)
-            changes.push(params.closed ? 'archived' : 'unarchived');
+            changes.push(params.closed ? t('update.changes.archived') : t('update.changes.unarchived'));
 
-          console.log(chalk.gray(`Changed: ${changes.join(', ')}`));
+          console.log(chalk.gray(t('update.changed', { changes: changes.join(', ') })));
         } catch (error) {
           handleCommandError(error);
         }

@@ -23,19 +23,19 @@ export function createMoveCommand(): Command {
 
         if (!boardId) {
           throw new TrelloError(
-            'No board configured. Run "tt init" first.',
+            t('move.errors.notInitialized'),
             'NOT_INITIALIZED'
           );
         }
 
-        const spinner = ora('Loading cards...').start();
+        const spinner = ora(t('move.loading')).start();
         const cards = await client.cards.listByBoard(boardId);
         spinner.stop();
 
         const cardNumber = parseInt(cardNumberStr, 10);
         if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
           throw new TrelloValidationError(
-            `Invalid card number. Must be between 1 and ${cards.length}.`,
+            t('move.errors.invalidCard', { max: cards.length }),
             'cardNumber'
           );
         }
@@ -45,11 +45,11 @@ export function createMoveCommand(): Command {
         let targetList = listAlias;
         if (!targetList) {
           targetList = await select({
-            message: `Move "${card.name}" to:`,
+            message: t('move.prompt', { name: card.name }),
             choices: [
-              { name: '📝 To Do', value: 'todo' },
-              { name: '🔄 Doing', value: 'doing' },
-              { name: '✅ Done', value: 'done' },
+              { name: `📝 ${t('move.lists.todo')}`, value: 'todo' },
+              { name: `🔄 ${t('move.lists.doing')}`, value: 'doing' },
+              { name: `✅ ${t('move.lists.done')}`, value: 'done' },
             ],
           });
         }
@@ -57,16 +57,16 @@ export function createMoveCommand(): Command {
         const list = cache.getListByAlias(targetList);
         if (!list) {
           throw new TrelloError(
-            `List "${targetList}" not found in cache. Run "tt init" to refresh.`,
+            t('move.errors.listNotFound', { list: targetList }),
             'LIST_NOT_FOUND'
           );
         }
 
-        const moveSpinner = ora(`Moving to ${list.name}...`).start();
+        const moveSpinner = ora(t('move.moving', { list: list.name })).start();
         await client.cards.move(card.id, list.id);
 
-        moveSpinner.succeed(`✓ "${card.name}" → ${list.name}`);
-        console.log(chalk.gray(`URL: ${card.shortUrl}`));
+        moveSpinner.succeed(`✓ ${t('move.success', { name: card.name, list: list.name })}`);
+        console.log(chalk.gray(`${t('common.url')} ${card.shortUrl}`));
       } catch (error) {
         handleCommandError(error);
       }

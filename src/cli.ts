@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, OutputConfiguration } from 'commander';
 import { createAuthCommand } from './commands/auth.js';
 import { createInitCommand } from './commands/init.js';
 import { createListCommand } from './commands/list.js';
@@ -24,6 +24,26 @@ import { createBatchCommand } from './commands/batch.js';
 import { initI18n, t } from './utils/i18n.js';
 
 await initI18n();
+
+function localizeHelp(output: string): string {
+  return output
+    .replace(/^Usage: /gm, `${t('cli.usage')} `)
+    .replace(/^Options:$/gm, t('cli.optionsTitle'))
+    .replace(/^Commands:$/gm, t('cli.commandsTitle'))
+    .replace(/^Arguments:$/gm, t('cli.argumentsTitle'))
+    .replace(/display help for command/g, t('cli.help'));
+}
+
+const localizedOutputConfig: OutputConfiguration = {
+  writeOut: (str) => process.stdout.write(localizeHelp(str)),
+  writeErr: (str) => process.stderr.write(localizeHelp(str)),
+  outputError: (str, write) => write(localizeHelp(str)),
+};
+
+function configureCommandOutput(cmd: Command): void {
+  cmd.configureOutput(localizedOutputConfig);
+  cmd.commands.forEach((subCmd) => configureCommandOutput(subCmd));
+}
 
 const program = new Command();
 
@@ -56,5 +76,7 @@ program.addCommand(createExportCommand());
 program.addCommand(createStatsCommand());
 program.addCommand(createTemplateCommand());
 program.addCommand(createBatchCommand());
+
+configureCommandOutput(program);
 
 program.parse();

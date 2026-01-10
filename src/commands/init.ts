@@ -14,7 +14,7 @@ export function createInitCommand(): Command {
   init
     .description(t('cli.commands.init'))
     .action(async () => {
-      const spinner = ora('Fetching your Trello boards...').start();
+      const spinner = ora(t('init.fetching')).start();
 
       try {
         const client = await createTrelloClient();
@@ -22,15 +22,15 @@ export function createInitCommand(): Command {
 
         if (boards.length === 0) {
           throw new TrelloError(
-            'No boards found. Create a board on Trello first.',
+            t('init.errors.noBoards'),
             'NO_BOARDS'
           );
         }
 
-        spinner.succeed('Boards loaded');
+        spinner.succeed(t('init.loaded'));
 
         const boardId = await select({
-          message: 'Select a board:',
+          message: t('init.selectBoard'),
           choices: boards.map((b) => ({
             name: b.name,
             value: b.id,
@@ -40,12 +40,12 @@ export function createInitCommand(): Command {
         const selectedBoard = boards.find((b) => b.id === boardId);
         if (!selectedBoard) {
           throw new TrelloError(
-            `Board not found (ID: ${boardId})`,
+            t('init.errors.boardNotFound', { id: boardId }),
             'BOARD_NOT_FOUND'
           );
         }
 
-        spinner.start('Fetching board data...');
+        spinner.start(t('init.fetchingData'));
 
         const [lists, members, labels] = await Promise.all([
           client.lists.listByBoard(boardId),
@@ -54,28 +54,26 @@ export function createInitCommand(): Command {
         ]);
 
         if (lists.length < 3) {
-          spinner.warn('Less than 3 lists found');
+          spinner.warn(t('init.lessLists'));
           console.log(
-            chalk.yellow(
-              'You need at least 3 lists (To Do, Doing, Done) for optimal workflow.'
-            )
+            chalk.yellow(t('init.lessListsWarning'))
           );
         }
 
         spinner.stop();
 
         const todo = await select({
-          message: 'Select "To Do" list:',
+          message: t('init.selectTodo'),
           choices: lists.map((l) => ({ name: l.name, value: l })),
         });
 
         const doing = await select({
-          message: 'Select "Doing" list:',
+          message: t('init.selectDoing'),
           choices: lists.map((l) => ({ name: l.name, value: l })),
         });
 
         const done = await select({
-          message: 'Select "Done" list:',
+          message: t('init.selectDone'),
           choices: lists.map((l) => ({ name: l.name, value: l })),
         });
 
@@ -89,16 +87,16 @@ export function createInitCommand(): Command {
 
         console.log(
           chalk.green(
-            `\n✓ Board "${selectedBoard.name}" configured for this project`
+            `\n✓ ${t('init.success', { name: selectedBoard.name })}`
           )
         );
         console.log(
-          chalk.gray(`Config saved to: ${process.cwd()}/.trello-cli.json`)
+          chalk.gray(t('init.configSaved', { path: `${process.cwd()}/.trello-cli.json` }))
         );
-        console.log(chalk.gray(`Members cached: ${members.length}`));
-        console.log(chalk.gray(`Labels cached: ${labels.length}\n`));
+        console.log(chalk.gray(t('init.membersCached', { count: members.length })));
+        console.log(chalk.gray(`${t('init.labelsCached', { count: labels.length })}\n`));
       } catch (error) {
-        spinner.fail('Failed to initialize');
+        spinner.fail(t('init.failed'));
         handleCommandError(error);
       }
     });

@@ -163,11 +163,11 @@ function displayFilteredCards(
         let dueStr = dueDate.toLocaleDateString();
 
         if (dueDate < now) {
-          dueStr = chalk.red(`Due: ${dueStr} (OVERDUE)`);
+          dueStr = chalk.red(`${t('search.due')} ${dueStr} (${t('search.overdue')})`);
         } else if (dueDate.toDateString() === now.toDateString()) {
-          dueStr = chalk.yellow(`Due: TODAY`);
+          dueStr = chalk.yellow(`${t('search.due')} ${t('search.today')}`);
         } else {
-          dueStr = chalk.white(`Due: ${dueStr}`);
+          dueStr = chalk.white(`${t('search.due')} ${dueStr}`);
         }
 
         console.log(`      📅 ${dueStr}`);
@@ -175,5 +175,5 @@ function displayFilteredCards(
     });
   }
 
-  console.log(chalk.gray(`\nTotal: ${cards.length} cards\n`));
+  console.log(chalk.gray(`\n${t('search.total', { count: cards.length })}\n`));
 }

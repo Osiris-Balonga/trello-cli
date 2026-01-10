@@ -24,7 +24,7 @@ export function createMembersCommand(): Command {
 
         if (!boardId) {
           throw new TrelloError(
-            'No board configured. Run "tt init" first.',
+            t('members.errors.notInitialized'),
             'NOT_INITIALIZED'
           );
         }
@@ -32,30 +32,30 @@ export function createMembersCommand(): Command {
         let membersData = cache.getMembers();
 
         if (options.refresh || Object.keys(membersData).length === 0) {
-          const spinner = ora('Fetching members from Trello...').start();
+          const spinner = ora(t('members.fetching')).start();
           const client = await createTrelloClient();
           const membersList = await client.members.listByBoard(boardId);
           cache.setMembers(membersList);
           cache.updateSyncTime();
           await cache.save();
-          spinner.succeed('Members refreshed');
+          spinner.succeed(t('members.refreshed'));
           membersData = cache.getMembers();
         }
 
         const memberEntries = Object.entries(membersData);
 
         if (memberEntries.length === 0) {
-          console.log(chalk.yellow('\nNo members found on this board.'));
+          console.log(chalk.yellow(`\n${t('members.noMembers')}`));
           return;
         }
 
-        console.log(chalk.cyan(`\n📋 Board Members (${memberEntries.length})\n`));
+        console.log(chalk.cyan(`\n📋 ${t('members.title', { count: memberEntries.length })}\n`));
 
         const table = new Table({
           head: [
-            chalk.bold('#'),
-            chalk.bold('Username'),
-            chalk.bold('Full Name'),
+            chalk.bold(t('members.table.number')),
+            chalk.bold(t('members.table.username')),
+            chalk.bold(t('members.table.fullName')),
           ],
           style: { head: [], border: [] },
         });

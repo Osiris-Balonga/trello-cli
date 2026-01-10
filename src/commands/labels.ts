@@ -21,8 +21,8 @@ const LABEL_COLORS: Record<string, string> = {
   black: '#344563',
 };
 
-function formatLabelColor(color: string | null): string {
-  if (!color) return chalk.gray('No color');
+function formatLabelColor(color: string | null, tFn: typeof t): string {
+  if (!color) return chalk.gray(tFn('labels.noColor'));
 
   const colorMap: Record<string, (text: string) => string> = {
     green: (t) => chalk.green(t),
@@ -57,7 +57,7 @@ export function createLabelsCommand(): Command {
 
         if (!boardId) {
           throw new TrelloError(
-            'No board configured. Run "tt init" first.',
+            t('labels.errors.notInitialized'),
             'NOT_INITIALIZED'
           );
         }
@@ -65,30 +65,30 @@ export function createLabelsCommand(): Command {
         let labelsData = cache.getLabels();
 
         if (options.refresh || Object.keys(labelsData).length === 0) {
-          const spinner = ora('Fetching labels from Trello...').start();
+          const spinner = ora(t('labels.fetching')).start();
           const client = await createTrelloClient();
           const labelsList = await client.labels.listByBoard(boardId);
           cache.setLabels(labelsList);
           cache.updateSyncTime();
           await cache.save();
-          spinner.succeed('Labels refreshed');
+          spinner.succeed(t('labels.refreshed'));
           labelsData = cache.getLabels();
         }
 
         const labelEntries = Object.entries(labelsData);
 
         if (labelEntries.length === 0) {
-          console.log(chalk.yellow('\nNo labels found on this board.'));
+          console.log(chalk.yellow(`\n${t('labels.noLabels')}`));
           return;
         }
 
-        console.log(chalk.cyan(`\n🏷️  Board Labels (${labelEntries.length})\n`));
+        console.log(chalk.cyan(`\n🏷️  ${t('labels.title', { count: labelEntries.length })}\n`));
 
         const table = new Table({
           head: [
-            chalk.bold('#'),
-            chalk.bold('Name'),
-            chalk.bold('Color'),
+            chalk.bold(t('labels.table.number')),
+            chalk.bold(t('labels.table.name')),
+            chalk.bold(t('labels.table.color')),
           ],
           style: { head: [], border: [] },
         });
@@ -97,14 +97,14 @@ export function createLabelsCommand(): Command {
           table.push([
             chalk.gray(String(index + 1)),
             chalk.white(name),
-            formatLabelColor(label.color),
+            formatLabelColor(label.color, t),
           ]);
         });
 
         console.log(table.toString());
         console.log();
 
-        console.log(chalk.gray('Available colors:'));
+        console.log(chalk.gray(t('labels.availableColors')));
         console.log(
           chalk.gray(
             Object.keys(LABEL_COLORS).join(', ')

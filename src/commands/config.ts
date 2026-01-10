@@ -19,14 +19,14 @@ export function createConfigCommand(): Command {
       try {
         switch (key) {
           case 'language':
-            console.log(`Language: ${config.getLanguage()}`);
+            console.log(t('config.get.language', { lang: config.getLanguage() }));
             break;
           case 'authMode':
-            console.log(`Auth mode: ${config.getAuthMode()}`);
+            console.log(t('config.get.authMode', { mode: config.getAuthMode() }));
             break;
           default:
             throw new TrelloValidationError(
-              `Unknown config key: ${key}`,
+              t('config.get.unknown', { key }),
               'key'
             );
         }
@@ -47,17 +47,17 @@ export function createConfigCommand(): Command {
             if (!isValidLanguage(value)) {
               const supported = getSupportedLanguages().join(', ');
               throw new TrelloValidationError(
-                `Invalid language. Supported: ${supported}`,
+                t('config.set.invalidLanguage', { languages: supported }),
                 'language'
               );
             }
             config.setLanguage(value);
-            console.log(chalk.green(`✓ Language updated to: ${value}`));
+            console.log(chalk.green(`✓ ${t('config.set.languageUpdated', { lang: value })}`));
             break;
           }
           default:
             throw new TrelloValidationError(
-              `Unknown config key: ${key}`,
+              t('config.set.unknown', { key }),
               'key'
             );
         }
@@ -71,10 +71,10 @@ export function createConfigCommand(): Command {
     .description(t('cli.subcommands.config.list'))
     .action(() => {
       try {
-        console.log(chalk.bold('\n⚙️  Current Configuration\n'));
-        console.log(`Language: ${config.getLanguage()}`);
-        console.log(`Auth mode: ${config.getAuthMode()}`);
-        console.log(chalk.gray(`\nConfig file: ${config.getPath()}\n`));
+        console.log(chalk.bold(`\n⚙️  ${t('config.list.title')}\n`));
+        console.log(t('config.get.language', { lang: config.getLanguage() }));
+        console.log(t('config.get.authMode', { mode: config.getAuthMode() }));
+        console.log(chalk.gray(`\n${t('common.configFile')} ${config.getPath()}\n`));
       } catch (error) {
         handleCommandError(error);
       }

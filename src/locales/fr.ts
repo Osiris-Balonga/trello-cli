@@ -5,6 +5,10 @@ export default {
     version: 'Afficher le numéro de version',
     help: 'Afficher l\'aide pour une commande',
     helpCommand: 'Afficher l\'aide pour une commande',
+    usage: 'Utilisation :',
+    optionsTitle: 'Options :',
+    commandsTitle: 'Commandes :',
+    argumentsTitle: 'Arguments :',
     commands: {
       auth: "S'authentifier avec l'API Trello",
       init: 'Initialiser le board Trello pour ce projet',
@@ -123,6 +127,10 @@ export default {
     none: 'Aucun',
     notSet: 'Non défini',
     unknown: 'Inconnu',
+    url: 'URL :',
+    card: 'Carte :',
+    total: 'Total :',
+    configFile: 'Fichier de config :',
   },
 
   // Auth command
@@ -365,6 +373,10 @@ export default {
     found: '{{count}} cartes trouvées pour "{{query}}" :',
     noResults: 'Aucune carte trouvée pour "{{query}}"',
     failed: 'Échec de la recherche',
+    total: 'Total : {{count}} cartes',
+    due: 'Échéance :',
+    overdue: 'EN RETARD',
+    today: "AUJOURD'HUI",
   },
 
   // Delete command
@@ -472,6 +484,11 @@ export default {
     noTemplates: 'Aucun template trouvé',
     createHint: 'Créez-en un avec : tt template create <nom>',
     usageHint: 'Usage : tt create --template <nom> "Titre de la carte"',
+    showTitle: 'Template : {{name}}',
+    showName: 'Nom :',
+    showLabels: 'Labels :',
+    showList: 'Liste par défaut :',
+    showDescription: 'Modèle de description :',
   },
 
   // Batch command

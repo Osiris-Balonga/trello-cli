@@ -54,7 +54,7 @@ async function handleAddComment(cardNumber: number, text?: string): Promise<void
     const card = cards[cardNumber - 1];
 
     if (!text) {
-      console.log(chalk.cyan(`\nCard: "${card.name}"\n`));
+      console.log(chalk.cyan(`\n${t('common.card')} "${card.name}"\n`));
       text = await input({
         message: t('comment.enterText'),
       });

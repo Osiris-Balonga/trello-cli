@@ -8,62 +8,60 @@ import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import type { Card } from '../api/types.js';
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return chalk.gray('Not set');
+function formatDate(dateStr: string | null, tFn: typeof t): string {
+  if (!dateStr) return chalk.gray(tFn('common.notSet'));
 
   const date = new Date(dateStr);
   const now = new Date();
-  const formatted = date.toLocaleDateString('en-US', {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  const formatted = date.toLocaleDateString();
 
   if (date < now) {
-    return chalk.red(`${formatted} (OVERDUE)`);
+    return chalk.red(tFn('show.due.overdue', { date: formatted }));
   } else if (date.toDateString() === now.toDateString()) {
-    return chalk.yellow(`${formatted} (TODAY)`);
+    return chalk.yellow(tFn('show.due.today', { date: formatted }));
   }
   return chalk.white(formatted);
 }
 
 function formatLabels(
   labelIds: string[],
-  labelsCache: Record<string, { id: string; color: string }>
+  labelsCache: Record<string, { id: string; color: string }>,
+  tFn: typeof t
 ): string {
-  if (labelIds.length === 0) return chalk.gray('None');
+  if (labelIds.length === 0) return chalk.gray(tFn('common.none'));
 
   const labelNames = Object.entries(labelsCache)
     .filter(([, label]) => labelIds.includes(label.id))
     .map(([name]) => name);
 
-  if (labelNames.length === 0) return chalk.gray('None');
+  if (labelNames.length === 0) return chalk.gray(tFn('common.none'));
   return labelNames.join(', ');
 }
 
 function formatMembers(
   memberIds: string[],
-  membersCache: Record<string, { id: string; fullName: string }>
+  membersCache: Record<string, { id: string; fullName: string }>,
+  tFn: typeof t
 ): string {
-  if (memberIds.length === 0) return chalk.gray('None');
+  if (memberIds.length === 0) return chalk.gray(tFn('common.none'));
 
   const memberNames = Object.entries(membersCache)
     .filter(([, member]) => memberIds.includes(member.id))
     .map(([username, member]) => `@${username} (${member.fullName})`);
 
-  if (memberNames.length === 0) return chalk.gray('None');
+  if (memberNames.length === 0) return chalk.gray(tFn('common.none'));
   return memberNames.join(', ');
 }
 
 function getListName(
   listId: string,
-  listsCache: Record<string, { id: string; name: string }>
+  listsCache: Record<string, { id: string; name: string }>,
+  tFn: typeof t
 ): string {
   for (const [, list] of Object.entries(listsCache)) {
     if (list.id === listId) return list.name;
   }
-  return 'Unknown';
+  return tFn('common.unknown');
 }
 
 export function createShowCommand(): Command {
@@ -79,20 +77,17 @@ export function createShowCommand(): Command {
         const boardId = cache.getBoardId();
 
         if (!boardId) {
-          throw new TrelloError(
-            'No board configured. Run "tt init" first.',
-            'NOT_INITIALIZED'
-          );
+          throw new TrelloError(t('show.errors.notInitialized'), 'NOT_INITIALIZED');
         }
 
-        const spinner = ora('Loading card...').start();
+        const spinner = ora(t('show.loading')).start();
         const cards = await client.cards.listByBoard(boardId);
         spinner.stop();
 
         const cardNumber = parseInt(cardNumberStr, 10);
         if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
           throw new TrelloValidationError(
-            `Invalid card number. Must be between 1 and ${cards.length}.`,
+            t('show.errors.invalidCard', { max: cards.length }),
             'cardNumber'
           );
         }
@@ -105,25 +100,25 @@ export function createShowCommand(): Command {
         console.log(chalk.bold.cyan(`\n📋 ${card.name}\n`));
         console.log(chalk.gray('─'.repeat(50)));
 
-        console.log(`${chalk.bold('List:')}     ${getListName(card.idList, lists)}`);
-        console.log(`${chalk.bold('Due:')}      ${formatDate(card.due)}`);
-        console.log(`${chalk.bold('Labels:')}   ${formatLabels(card.idLabels, labels)}`);
-        console.log(`${chalk.bold('Members:')}  ${formatMembers(card.idMembers, members)}`);
+        console.log(`${chalk.bold(t('show.fields.list'))}     ${getListName(card.idList, lists, t)}`);
+        console.log(`${chalk.bold(t('show.fields.due'))}      ${formatDate(card.due, t)}`);
+        console.log(`${chalk.bold(t('show.fields.labels'))}   ${formatLabels(card.idLabels, labels, t)}`);
+        console.log(`${chalk.bold(t('show.fields.members'))}  ${formatMembers(card.idMembers, members, t)}`);
 
         console.log(chalk.gray('\n─'.repeat(50)));
 
         if (card.desc && card.desc.trim()) {
-          console.log(chalk.bold('\nDescription:'));
+          console.log(chalk.bold(`\n${t('show.fields.description')}`));
           console.log(card.desc);
         } else {
-          console.log(chalk.gray('\nNo description'));
+          console.log(chalk.gray(`\n${t('show.fields.noDescription')}`));
         }
 
         console.log(chalk.gray('\n─'.repeat(50)));
-        console.log(chalk.gray(`URL: ${card.shortUrl}`));
+        console.log(chalk.gray(`${t('common.url')} ${card.shortUrl}`));
         console.log(
           chalk.gray(
-            `Last activity: ${new Date(card.dateLastActivity).toLocaleString()}`
+            t('show.fields.lastActivity', { date: new Date(card.dateLastActivity).toLocaleString() })
           )
         );
         console.log();

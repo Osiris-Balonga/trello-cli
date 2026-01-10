@@ -14,7 +14,7 @@ export function createListCommand(): Command {
   list
     .description(t('cli.commands.list'))
     .action(async () => {
-      const spinner = ora('Loading cards...').start();
+      const spinner = ora(t('list.loading')).start();
 
       try {
         const cache = await loadCache();
@@ -22,17 +22,17 @@ export function createListCommand(): Command {
         const boardId = cache.getBoardId();
 
         if (!boardId) {
-          throw new TrelloError('Board ID not found in cache', 'INVALID_CACHE');
+          throw new TrelloError(t('list.errors.boardNotFound'), 'INVALID_CACHE');
         }
 
         const cards = await client.cards.listByBoard(boardId);
 
-        spinner.succeed('Cards loaded');
+        spinner.succeed(t('list.loaded'));
 
         console.log(chalk.bold(`\n${cache.getBoardName()}`));
         displayCardsByList(cards, cache.getLists());
       } catch (error) {
-        spinner.fail('Failed to load cards');
+        spinner.fail(t('list.failed'));
         handleCommandError(error);
       }
     });

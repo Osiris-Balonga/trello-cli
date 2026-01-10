@@ -139,10 +139,10 @@ async function handleListTemplates(): Promise<void> {
       console.log(chalk.cyan(`  ${key}`));
       console.log(`    ${tpl.name}`);
       if (tpl.labels?.length) {
-        console.log(chalk.gray(`    Labels: ${tpl.labels.join(', ')}`));
+        console.log(chalk.gray(`    ${t('template.showLabels')} ${tpl.labels.join(', ')}`));
       }
       if (tpl.list) {
-        console.log(chalk.gray(`    List: ${tpl.list}`));
+        console.log(chalk.gray(`    ${t('template.showList')} ${tpl.list}`));
       }
       console.log('');
     }
@@ -167,16 +167,16 @@ async function handleShowTemplate(templateName: string): Promise<void> {
       return;
     }
 
-    console.log(chalk.bold(`\nTemplate: ${templateName}\n`));
-    console.log(`Name: ${template.name}`);
+    console.log(chalk.bold(`\n${t('template.showTitle', { name: templateName })}\n`));
+    console.log(`${t('template.showName')} ${template.name}`);
     if (template.labels?.length) {
-      console.log(`Labels: ${template.labels.join(', ')}`);
+      console.log(`${t('template.showLabels')} ${template.labels.join(', ')}`);
     }
     if (template.list) {
-      console.log(`Default list: ${template.list}`);
+      console.log(`${t('template.showList')} ${template.list}`);
     }
     if (template.description) {
-      console.log('\nDescription template:');
+      console.log(`\n${t('template.showDescription')}`);
       console.log(chalk.gray('─'.repeat(40)));
       console.log(template.description);
       console.log(chalk.gray('─'.repeat(40)));
