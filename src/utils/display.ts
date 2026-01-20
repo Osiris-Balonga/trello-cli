@@ -34,6 +34,7 @@ export interface NumberedCard extends Card {
 export interface GetNumberedCardsOptions {
   memberId?: string;
   cache?: Cache;
+  isFiltered?: boolean;
 }
 
 export function getNumberedCards(
@@ -131,7 +132,19 @@ export function displayCardsByList(
 ): void {
   const numberedCards = getNumberedCards(cards, lists, options);
   const sortedLists = [...lists].sort((a, b) => a.pos - b.pos);
-  const { cache } = options;
+  const { cache, memberId, isFiltered } = options;
+
+  const totalDisplayed = numberedCards.length;
+  const isFilteredByMember = isFiltered !== undefined ? isFiltered : !!memberId;
+
+  if (totalDisplayed === 0) {
+    if (isFilteredByMember) {
+      logger.print(chalk.yellow(`\n${t('display.noCardsAssigned')}\n`));
+    } else {
+      logger.print(chalk.yellow(`\n${t('display.noCardsOnBoard')}\n`));
+    }
+    return;
+  }
 
   for (const list of sortedLists) {
     const listCards = numberedCards.filter((c) => c.idList === list.id);
@@ -175,6 +188,9 @@ export function displayCardsByList(
     logger.print(table.toString());
   }
 
-  const totalDisplayed = numberedCards.length;
-  logger.print(chalk.gray(`\nTotal: ${totalDisplayed} cards\n`));
+  if (isFilteredByMember) {
+    logger.print(chalk.gray(`\n${t('display.totalCardsAssigned', { count: totalDisplayed })}\n`));
+  } else {
+    logger.print(chalk.gray(`\n${t('display.totalCards', { count: totalDisplayed })}\n`));
+  }
 }

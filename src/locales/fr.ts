@@ -1,4 +1,16 @@
 export default {
+  // Display messages
+  display: {
+    totalCards: 'Total : {{count}} cartes',
+    totalCardsAssigned: 'Assignées à vous : {{count}} cartes',
+    noCardsOnBoard: 'Aucune carte sur ce board',
+    noCardsAssigned: 'Aucune carte ne vous est assignée. Utilisez --all pour voir toutes les cartes du board.',
+    noCardsAvailable: 'Aucune carte disponible',
+    noCardsAvailableAssigned: 'Aucune carte ne vous est assignée. Utilisez --all pour voir toutes les cartes du board.',
+    showingAllCards: 'Affichage de toutes les cartes du board',
+    showingMyCards: 'Affichage de vos cartes assignées',
+  },
+
   // CLI descriptions
   cli: {
     description: 'Trello CLI - Gérez vos cartes Trello depuis le terminal',

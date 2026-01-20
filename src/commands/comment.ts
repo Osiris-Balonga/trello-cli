@@ -51,6 +51,13 @@ async function handleAddComment(cardNumber: number, text?: string, all?: boolean
     const memberId = all ? undefined : currentMemberId;
     const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
+    if (numberedCards.length === 0) {
+      const message = memberId
+        ? t('display.noCardsAvailableAssigned')
+        : t('display.noCardsAvailable');
+      throw new TrelloValidationError(message, 'cardNumber');
+    }
+
     const card = numberedCards.find((c) => c.displayNumber === cardNumber);
 
     if (!card) {
@@ -96,6 +103,14 @@ async function handleListComments(cardNumber: number, all?: boolean): Promise<vo
     const currentMemberId = cache.getCurrentMemberId();
     const memberId = all ? undefined : currentMemberId;
     const numberedCards = getNumberedCards(allCards, lists, { memberId });
+
+    if (numberedCards.length === 0) {
+      spinner.stop();
+      const message = memberId
+        ? t('display.noCardsAvailableAssigned')
+        : t('display.noCardsAvailable');
+      throw new TrelloValidationError(message, 'cardNumber');
+    }
 
     const card = numberedCards.find((c) => c.displayNumber === cardNumber);
 

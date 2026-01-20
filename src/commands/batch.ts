@@ -114,6 +114,20 @@ function getCardsByNumbers(
   return { targetCards, invalidCards };
 }
 
+function checkNoCardsAvailable(
+  numberedCards: Array<Card & { displayNumber: number }>,
+  memberId: string | undefined
+): boolean {
+  if (numberedCards.length === 0) {
+    const message = memberId
+      ? t('display.noCardsAvailableAssigned')
+      : t('display.noCardsAvailable');
+    logger.print(chalk.yellow(message));
+    return true;
+  }
+  return false;
+}
+
 async function handleBatchMove(
   listName: string,
   cardNumbers: string[],
@@ -140,6 +154,10 @@ async function handleBatchMove(
     const currentMemberId = cache.getCurrentMemberId();
     const memberId = options.all ? undefined : currentMemberId;
     const numberedCards = getNumberedCards(allCards, lists, { memberId });
+
+    if (checkNoCardsAvailable(numberedCards, memberId)) {
+      return;
+    }
 
     const { targetCards, invalidCards } = getCardsByNumbers(numberedCards, cardNumbers);
 
@@ -203,6 +221,10 @@ async function handleBatchArchive(
     const currentMemberId = cache.getCurrentMemberId();
     const memberId = options.all ? undefined : currentMemberId;
     const numberedCards = getNumberedCards(allCards, lists, { memberId });
+
+    if (checkNoCardsAvailable(numberedCards, memberId)) {
+      return;
+    }
 
     const { targetCards, invalidCards } = getCardsByNumbers(numberedCards, cardNumbers);
 
@@ -282,6 +304,10 @@ async function handleBatchLabel(
     const memberId = options.all ? undefined : currentMemberId;
     const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
+    if (checkNoCardsAvailable(numberedCards, memberId)) {
+      return;
+    }
+
     const { targetCards, invalidCards } = getCardsByNumbers(numberedCards, cardNumbers);
 
     if (invalidCards.length > 0) {
@@ -359,6 +385,10 @@ async function handleBatchAssign(
     const currentMemberId = cache.getCurrentMemberId();
     const memberId = options.all ? undefined : currentMemberId;
     const numberedCards = getNumberedCards(allCards, lists, { memberId });
+
+    if (checkNoCardsAvailable(numberedCards, memberId)) {
+      return;
+    }
 
     const { targetCards, invalidCards } = getCardsByNumbers(numberedCards, cardNumbers);
 

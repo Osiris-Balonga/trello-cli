@@ -40,11 +40,11 @@ export function createListCommand(): Command {
         logger.print(chalk.bold(`\n${cache.getBoardName()}`));
 
         if (options.all) {
-          displayCardsByList(cards, lists, { cache });
+          displayCardsByList(cards, lists, { cache, isFiltered: false });
         } else if (currentMemberId) {
-          displayCardsByList(cards, lists, { memberId: currentMemberId, cache });
+          displayCardsByList(cards, lists, { memberId: currentMemberId, cache, isFiltered: true });
         } else {
-          displayCardsByList(cards, lists, { cache });
+          displayCardsByList(cards, lists, { cache, isFiltered: false });
         }
       } catch (error) {
         spinner.fail(t('list.failed'));

@@ -43,6 +43,13 @@ async function handleArchive(cardNumber: number, undo: boolean, all: boolean): P
     const memberId = all ? undefined : currentMemberId;
     const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
+    if (numberedCards.length === 0) {
+      const message = memberId
+        ? t('display.noCardsAvailableAssigned')
+        : t('display.noCardsAvailable');
+      throw new TrelloValidationError(message, 'cardNumber');
+    }
+
     const card = numberedCards.find((c) => c.displayNumber === cardNumber);
 
     if (!card) {

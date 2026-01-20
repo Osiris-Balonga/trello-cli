@@ -44,6 +44,14 @@ export function createMoveCommand(): Command {
         spinner.stop();
 
         const cardNumber = parseInt(cardNumberStr, 10);
+
+        if (numberedCards.length === 0) {
+          const message = memberId
+            ? t('display.noCardsAvailableAssigned')
+            : t('display.noCardsAvailable');
+          throw new TrelloValidationError(message, 'cardNumber');
+        }
+
         const card = numberedCards.find((c) => c.displayNumber === cardNumber);
 
         if (!card) {
