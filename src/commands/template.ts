@@ -89,16 +89,15 @@ async function handleCreateTemplate(templateName: string): Promise<void> {
       });
     }
 
-    const lists = cache.getLists();
-    const listChoices = Object.entries(lists).map(([alias, list]) => ({
+    const lists = cache.getAllLists();
+    const listChoices = lists.map((list) => ({
       name: list.name,
-      value: alias,
+      value: list.name,
     }));
 
     const list = await select({
       message: t('template.promptList'),
       choices: listChoices,
-      default: 'todo',
     });
 
     const templateData: CardTemplate = {

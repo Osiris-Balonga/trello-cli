@@ -2,12 +2,14 @@ import { Command } from 'commander';
 import ora from 'ora';
 import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
+import { getNumberedCards } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 
 interface ArchiveOptions {
   undo?: boolean;
+  all?: boolean;
 }
 
 export function createArchiveCommand(): Command {
@@ -17,14 +19,15 @@ export function createArchiveCommand(): Command {
     .description(t('cli.commands.archive'))
     .argument('<cardNumber>', t('cli.arguments.cardNumber'))
     .option('--undo', t('cli.options.unarchive'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (cardNumberStr: string, options: ArchiveOptions) => {
-      await handleArchive(parseInt(cardNumberStr, 10), options.undo ?? false);
+      await handleArchive(parseInt(cardNumberStr, 10), options.undo ?? false, options.all ?? false);
     });
 
   return archive;
 }
 
-async function handleArchive(cardNumber: number, undo: boolean): Promise<void> {
+async function handleArchive(cardNumber: number, undo: boolean, all: boolean): Promise<void> {
   try {
     const cache = await loadCache();
     const boardId = cache.getBoardId();
@@ -34,16 +37,20 @@ async function handleArchive(cardNumber: number, undo: boolean): Promise<void> {
     }
 
     const client = await createTrelloClient();
-    const cards = await client.cards.listByBoard(boardId);
+    const allCards = await client.cards.listByBoard(boardId);
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
+    const card = numberedCards.find((c) => c.displayNumber === cardNumber);
+
+    if (!card) {
       throw new TrelloValidationError(
-        t('archive.invalidCard', { max: cards.length }),
+        t('archive.invalidCard', { max: numberedCards.length }),
         'cardNumber'
       );
     }
-
-    const card = cards[cardNumber - 1];
     const actionKey = undo ? 'unarchiving' : 'archiving';
     const spinner = ora(t(`archive.${actionKey}`)).start();
 

@@ -4,14 +4,15 @@ import chalk from 'chalk';
 import { input } from '@inquirer/prompts';
 import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
+import { formatDate, getNumberedCards } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
-import { formatDate } from '../utils/display.js';
 import { logger } from '../utils/logger.js';
 
 interface CommentOptions {
   list?: boolean;
+  all?: boolean;
 }
 
 export function createCommentCommand(): Command {
@@ -22,18 +23,19 @@ export function createCommentCommand(): Command {
     .argument('<cardNumber>', t('cli.arguments.cardNumber'))
     .argument('[text]', t('cli.arguments.text'))
     .option('--list', t('cli.options.listComments'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (cardNumberStr: string, text: string | undefined, options: CommentOptions) => {
       if (options.list) {
-        await handleListComments(parseInt(cardNumberStr, 10));
+        await handleListComments(parseInt(cardNumberStr, 10), options.all ?? false);
       } else {
-        await handleAddComment(parseInt(cardNumberStr, 10), text);
+        await handleAddComment(parseInt(cardNumberStr, 10), text, options.all ?? false);
       }
     });
 
   return comment;
 }
 
-async function handleAddComment(cardNumber: number, text?: string): Promise<void> {
+async function handleAddComment(cardNumber: number, text?: string, all?: boolean): Promise<void> {
   try {
     const cache = await loadCache();
     const boardId = cache.getBoardId();
@@ -43,16 +45,20 @@ async function handleAddComment(cardNumber: number, text?: string): Promise<void
     }
 
     const client = await createTrelloClient();
-    const cards = await client.cards.listByBoard(boardId);
+    const allCards = await client.cards.listByBoard(boardId);
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
+    const card = numberedCards.find((c) => c.displayNumber === cardNumber);
+
+    if (!card) {
       throw new TrelloValidationError(
-        t('comment.invalidCard', { max: cards.length }),
+        t('comment.invalidCard', { max: numberedCards.length }),
         'cardNumber'
       );
     }
-
-    const card = cards[cardNumber - 1];
 
     if (!text) {
       logger.print(chalk.cyan(`\n${t('common.card')} "${card.name}"\n`));
@@ -74,7 +80,7 @@ async function handleAddComment(cardNumber: number, text?: string): Promise<void
   }
 }
 
-async function handleListComments(cardNumber: number): Promise<void> {
+async function handleListComments(cardNumber: number, all?: boolean): Promise<void> {
   try {
     const cache = await loadCache();
     const boardId = cache.getBoardId();
@@ -85,17 +91,21 @@ async function handleListComments(cardNumber: number): Promise<void> {
 
     const spinner = ora(t('comment.loading')).start();
     const client = await createTrelloClient();
-    const cards = await client.cards.listByBoard(boardId);
+    const allCards = await client.cards.listByBoard(boardId);
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
+    const card = numberedCards.find((c) => c.displayNumber === cardNumber);
+
+    if (!card) {
       spinner.stop();
       throw new TrelloValidationError(
-        t('comment.invalidCard', { max: cards.length }),
+        t('comment.invalidCard', { max: numberedCards.length }),
         'cardNumber'
       );
     }
-
-    const card = cards[cardNumber - 1];
     const comments = await client.cards.getComments(card.id);
     spinner.stop();
 

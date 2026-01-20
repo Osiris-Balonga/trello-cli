@@ -4,10 +4,15 @@ import ora from 'ora';
 import chalk from 'chalk';
 import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
+import { getNumberedCards } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
+
+interface MoveOptions {
+  all?: boolean;
+}
 
 export function createMoveCommand(): Command {
   const move = new Command('move');
@@ -15,8 +20,9 @@ export function createMoveCommand(): Command {
   move
     .description(t('cli.commands.move'))
     .argument('<cardNumber>', t('cli.arguments.cardNumber'))
-    .argument('[list]', t('cli.arguments.list'))
-    .action(async (cardNumberStr: string, listAlias: string | undefined) => {
+    .argument('[list]', t('cli.arguments.listName'))
+    .option('-a, --all', t('cli.options.listAll'))
+    .action(async (cardNumberStr: string, listName: string | undefined, options: MoveOptions) => {
       try {
         const cache = await loadCache();
         const client = await createTrelloClient();
@@ -30,43 +36,47 @@ export function createMoveCommand(): Command {
         }
 
         const spinner = ora(t('move.loading')).start();
-        const cards = await client.cards.listByBoard(boardId);
+        const allCards = await client.cards.listByBoard(boardId);
+        const lists = cache.getAllLists();
+        const currentMemberId = cache.getCurrentMemberId();
+        const memberId = options.all ? undefined : currentMemberId;
+        const numberedCards = getNumberedCards(allCards, lists, { memberId });
         spinner.stop();
 
         const cardNumber = parseInt(cardNumberStr, 10);
-        if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
+        const card = numberedCards.find((c) => c.displayNumber === cardNumber);
+
+        if (!card) {
           throw new TrelloValidationError(
-            t('move.errors.invalidCard', { max: cards.length }),
+            t('move.errors.invalidCard', { max: numberedCards.length }),
             'cardNumber'
           );
         }
 
-        const card = cards[cardNumber - 1];
+        let targetList = listName ? cache.getListByName(listName) : undefined;
 
-        let targetList = listAlias;
-        if (!targetList) {
-          targetList = await select({
+        if (!listName) {
+          const selectedListId = await select({
             message: t('move.prompt', { name: card.name }),
-            choices: [
-              { name: `📝 ${t('move.lists.todo')}`, value: 'todo' },
-              { name: `🔄 ${t('move.lists.doing')}`, value: 'doing' },
-              { name: `✅ ${t('move.lists.done')}`, value: 'done' },
-            ],
+            choices: lists.map((l) => ({
+              name: l.name,
+              value: l.id,
+            })),
           });
+          targetList = lists.find((l) => l.id === selectedListId);
         }
 
-        const list = cache.getListByAlias(targetList);
-        if (!list) {
+        if (!targetList) {
           throw new TrelloError(
-            t('move.errors.listNotFound', { list: targetList }),
+            t('move.errors.listNotFound', { list: listName || '' }),
             'LIST_NOT_FOUND'
           );
         }
 
-        const moveSpinner = ora(t('move.moving', { list: list.name })).start();
-        await client.cards.move(card.id, list.id);
+        const moveSpinner = ora(t('move.moving', { list: targetList.name })).start();
+        await client.cards.move(card.id, targetList.id);
 
-        moveSpinner.succeed(`✓ ${t('move.success', { name: card.name, list: list.name })}`);
+        moveSpinner.succeed(`${t('move.success', { name: card.name, list: targetList.name })}`);
         logger.print(chalk.gray(`${t('common.url')} ${card.shortUrl}`));
       } catch (error) {
         handleCommandError(error);

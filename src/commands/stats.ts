@@ -100,7 +100,6 @@ function displayStats(
   logger.print(`${t('stats.created')}:     ${stats.cards.created}`);
   logger.print(`${t('stats.completed')}:   ${stats.cards.completed}`);
   logger.print(`${t('stats.archived')}:    ${stats.cards.archived}`);
-  logger.print(`${t('stats.inProgress')}: ${stats.cards.inProgress}`);
 
   logger.print(chalk.bold(`\n${t('stats.velocitySection')}:`));
   logger.print('─'.repeat(55));

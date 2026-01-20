@@ -161,29 +161,56 @@ describe('Cache', () => {
     it('sets and retrieves lists', async () => {
       await cache.init('board123', 'My Board');
 
-      const todo = { id: 'list1', name: 'To Do' };
-      const doing = { id: 'list2', name: 'Doing' };
-      const done = { id: 'list3', name: 'Done' };
+      const lists = [
+        { id: 'list1', name: 'To Do', pos: 1 },
+        { id: 'list2', name: 'Doing', pos: 2 },
+        { id: 'list3', name: 'Done', pos: 3 },
+      ];
 
-      cache.setLists(todo, doing, done);
+      cache.setAllLists(lists);
 
-      const lists = cache.getLists();
-      expect(lists.todo).toEqual(todo);
-      expect(lists.doing).toEqual(doing);
-      expect(lists.done).toEqual(done);
+      const allLists = cache.getAllLists();
+      expect(allLists).toHaveLength(3);
+      expect(allLists[0]).toMatchObject({ id: 'list1', name: 'To Do' });
+      expect(allLists[1]).toMatchObject({ id: 'list2', name: 'Doing' });
+      expect(allLists[2]).toMatchObject({ id: 'list3', name: 'Done' });
     });
 
-    it('retrieves list by alias', async () => {
+    it('retrieves list by name', async () => {
       await cache.init('board123', 'My Board');
 
-      cache.setLists(
-        { id: 'list1', name: 'To Do' },
-        { id: 'list2', name: 'In Progress' },
-        { id: 'list3', name: 'Complete' }
-      );
+      cache.setAllLists([
+        { id: 'list1', name: 'To Do', pos: 1 },
+        { id: 'list2', name: 'In Progress', pos: 2 },
+        { id: 'list3', name: 'Complete', pos: 3 },
+      ]);
 
-      const list = cache.getListByAlias('todo');
+      const list = cache.getListByName('To Do');
       expect(list?.id).toBe('list1');
+    });
+
+    it('retrieves list by id', async () => {
+      await cache.init('board123', 'My Board');
+
+      cache.setAllLists([
+        { id: 'list1', name: 'To Do', pos: 1 },
+        { id: 'list2', name: 'In Progress', pos: 2 },
+      ]);
+
+      const list = cache.getListById('list2');
+      expect(list?.name).toBe('In Progress');
+    });
+
+    it('finds list by partial name match', async () => {
+      await cache.init('board123', 'My Board');
+
+      cache.setAllLists([
+        { id: 'list1', name: 'To Do', pos: 1 },
+        { id: 'list2', name: 'In Progress', pos: 2 },
+      ]);
+
+      const list = cache.getListByName('progress');
+      expect(list?.id).toBe('list2');
     });
   });
 

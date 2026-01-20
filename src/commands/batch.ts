@@ -4,14 +4,17 @@ import chalk from 'chalk';
 import pLimit from 'p-limit';
 import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
+import { getNumberedCards } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
+import type { Card } from '../api/types.js';
 
 interface BatchOptions {
   dryRun?: boolean;
   parallel?: boolean;
+  all?: boolean;
 }
 
 export function createBatchCommand(): Command {
@@ -24,6 +27,7 @@ export function createBatchCommand(): Command {
     .description(t('cli.subcommands.batch.move'))
     .option('--dry-run', t('cli.options.dryRun'))
     .option('--parallel', t('cli.options.parallel'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (list: string, cards: string[], options: BatchOptions) => {
       await handleBatchMove(list, cards, options);
     });
@@ -33,6 +37,7 @@ export function createBatchCommand(): Command {
     .description(t('cli.subcommands.batch.archive'))
     .option('--dry-run', t('cli.options.dryRun'))
     .option('--parallel', t('cli.options.parallel'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (cards: string[], options: BatchOptions) => {
       await handleBatchArchive(cards, options, true);
     });
@@ -42,6 +47,7 @@ export function createBatchCommand(): Command {
     .description(t('cli.subcommands.batch.unarchive'))
     .option('--dry-run', t('cli.options.dryRun'))
     .option('--parallel', t('cli.options.parallel'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (cards: string[], options: BatchOptions) => {
       await handleBatchArchive(cards, options, false);
     });
@@ -51,6 +57,7 @@ export function createBatchCommand(): Command {
     .description(t('cli.subcommands.batch.label'))
     .option('--dry-run', t('cli.options.dryRun'))
     .option('--parallel', t('cli.options.parallel'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (name: string, cards: string[], options: BatchOptions) => {
       await handleBatchLabel(name, cards, options, 'add');
     });
@@ -60,6 +67,7 @@ export function createBatchCommand(): Command {
     .description(t('cli.subcommands.batch.unlabel'))
     .option('--dry-run', t('cli.options.dryRun'))
     .option('--parallel', t('cli.options.parallel'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (name: string, cards: string[], options: BatchOptions) => {
       await handleBatchLabel(name, cards, options, 'remove');
     });
@@ -69,6 +77,7 @@ export function createBatchCommand(): Command {
     .description(t('cli.subcommands.batch.assign'))
     .option('--dry-run', t('cli.options.dryRun'))
     .option('--parallel', t('cli.options.parallel'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(
       async (username: string, cards: string[], options: BatchOptions) => {
         await handleBatchAssign(username, cards, options, 'add');
@@ -80,6 +89,7 @@ export function createBatchCommand(): Command {
     .description(t('cli.subcommands.batch.unassign'))
     .option('--dry-run', t('cli.options.dryRun'))
     .option('--parallel', t('cli.options.parallel'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(
       async (username: string, cards: string[], options: BatchOptions) => {
         await handleBatchAssign(username, cards, options, 'remove');
@@ -89,8 +99,23 @@ export function createBatchCommand(): Command {
   return batch;
 }
 
+function getCardsByNumbers(
+  numberedCards: Array<Card & { displayNumber: number }>,
+  cardNumbers: string[]
+): { targetCards: Card[]; invalidCards: number[] } {
+  const cardNums = cardNumbers.map((n) => parseInt(n, 10));
+  const cardMap = new Map(numberedCards.map((c) => [c.displayNumber, c]));
+
+  const invalidCards = cardNums.filter((n) => !cardMap.has(n) || isNaN(n));
+  const targetCards = cardNums
+    .map((n) => cardMap.get(n))
+    .filter((c): c is Card & { displayNumber: number } => c !== undefined);
+
+  return { targetCards, invalidCards };
+}
+
 async function handleBatchMove(
-  listAlias: string,
+  listName: string,
   cardNumbers: string[],
   options: BatchOptions
 ): Promise<void> {
@@ -102,27 +127,28 @@ async function handleBatchMove(
       throw new TrelloError(t('errors.cacheNotFound'), 'NOT_INITIALIZED');
     }
 
-    const list = cache.getListByAlias(listAlias);
+    const list = cache.getListByName(listName);
     if (!list) {
-      logger.print(chalk.red(t('batch.listNotFound', { list: listAlias })));
+      const availableLists = cache.getAllLists().map((l) => l.name).join(', ');
+      logger.print(chalk.red(t('batch.listNotFound', { list: listName }) + ` (${t('common.available')}: ${availableLists})`));
       return;
     }
 
     const client = await createTrelloClient();
     const allCards = await client.cards.listByBoard(boardId);
-    const cardNums = cardNumbers.map((n) => parseInt(n, 10));
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = options.all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    const invalidCards = cardNums.filter(
-      (n) => n < 1 || n > allCards.length || isNaN(n)
-    );
+    const { targetCards, invalidCards } = getCardsByNumbers(numberedCards, cardNumbers);
+
     if (invalidCards.length > 0) {
       logger.print(
         chalk.red(t('batch.invalidCards', { cards: invalidCards.join(', ') }))
       );
       return;
     }
-
-    const targetCards = cardNums.map((n) => allCards[n - 1]);
 
     if (options.dryRun) {
       logger.print(chalk.cyan(`\n${t('batch.dryRun')}:`));
@@ -173,11 +199,13 @@ async function handleBatchArchive(
 
     const client = await createTrelloClient();
     const allCards = await client.cards.listByBoard(boardId);
-    const cardNums = cardNumbers.map((n) => parseInt(n, 10));
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = options.all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    const invalidCards = cardNums.filter(
-      (n) => n < 1 || n > allCards.length || isNaN(n)
-    );
+    const { targetCards, invalidCards } = getCardsByNumbers(numberedCards, cardNumbers);
+
     if (invalidCards.length > 0) {
       logger.print(
         chalk.red(t('batch.invalidCards', { cards: invalidCards.join(', ') }))
@@ -185,7 +213,6 @@ async function handleBatchArchive(
       return;
     }
 
-    const targetCards = cardNums.map((n) => allCards[n - 1]);
     const action = archive ? 'archive' : 'unarchive';
 
     if (options.dryRun) {
@@ -250,19 +277,19 @@ async function handleBatchLabel(
 
     const client = await createTrelloClient();
     const allCards = await client.cards.listByBoard(boardId);
-    const cardNums = cardNumbers.map((n) => parseInt(n, 10));
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = options.all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    const invalidCards = cardNums.filter(
-      (n) => n < 1 || n > allCards.length || isNaN(n)
-    );
+    const { targetCards, invalidCards } = getCardsByNumbers(numberedCards, cardNumbers);
+
     if (invalidCards.length > 0) {
       logger.print(
         chalk.red(t('batch.invalidCards', { cards: invalidCards.join(', ') }))
       );
       return;
     }
-
-    const targetCards = cardNums.map((n) => allCards[n - 1]);
 
     if (options.dryRun) {
       logger.print(chalk.cyan(`\n${t('batch.dryRun')}:`));
@@ -328,19 +355,19 @@ async function handleBatchAssign(
 
     const client = await createTrelloClient();
     const allCards = await client.cards.listByBoard(boardId);
-    const cardNums = cardNumbers.map((n) => parseInt(n, 10));
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = options.all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    const invalidCards = cardNums.filter(
-      (n) => n < 1 || n > allCards.length || isNaN(n)
-    );
+    const { targetCards, invalidCards } = getCardsByNumbers(numberedCards, cardNumbers);
+
     if (invalidCards.length > 0) {
       logger.print(
         chalk.red(t('batch.invalidCards', { cards: invalidCards.join(', ') }))
       );
       return;
     }
-
-    const targetCards = cardNums.map((n) => allCards[n - 1]);
 
     if (options.dryRun) {
       logger.print(chalk.cyan(`\n${t('batch.dryRun')}:`));

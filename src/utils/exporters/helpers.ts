@@ -2,13 +2,8 @@ import type { Card } from '../../api/types.js';
 import type { Cache } from '../../core/cache.js';
 
 export function getListNameById(listId: string, cache: Cache): string {
-  const lists = cache.getLists();
-  for (const list of Object.values(lists)) {
-    if (list.id === listId) {
-      return list.name;
-    }
-  }
-  return 'Unknown';
+  const list = cache.getListById(listId);
+  return list?.name ?? 'Unknown';
 }
 
 export function getLabelNameById(labelId: string, cache: Cache): string {

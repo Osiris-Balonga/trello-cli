@@ -42,16 +42,26 @@ export class Cache {
     });
   }
 
-  async init(boardId: string, boardName: string): Promise<void> {
+  async init(boardId: string, boardName: string, currentMemberId?: string): Promise<void> {
     this.data = {
       boardId,
       boardName,
+      currentMemberId,
       members: {},
       labels: {},
-      lists: {} as ProjectConfig['lists'],
+      lists: {},
       lastSync: null,
     };
     await this.save();
+  }
+
+  getCurrentMemberId(): string | undefined {
+    return this.data?.currentMemberId;
+  }
+
+  setCurrentMemberId(memberId: string): void {
+    if (!this.data) return;
+    this.data.currentMemberId = memberId;
   }
 
   getBoardId(): string | null {
@@ -106,19 +116,40 @@ export class Cache {
     return this.data?.lists || {};
   }
 
-  getListByAlias(alias: string): List | undefined {
+  getAllLists(): List[] {
     const lists = this.getLists();
-    return lists[alias.toLowerCase()];
+    return Object.values(lists).sort((a, b) => a.pos - b.pos);
   }
 
-  setLists(todo: List, doing: List, done: List): void {
+  getListByName(name: string): List | undefined {
+    const lists = this.getAllLists();
+    const lowerName = name.toLowerCase();
+
+    // Exact match first
+    const exact = lists.find((l) => l.name.toLowerCase() === lowerName);
+    if (exact) return exact;
+
+    // Partial match (starts with)
+    const partial = lists.find((l) => l.name.toLowerCase().startsWith(lowerName));
+    if (partial) return partial;
+
+    // Contains match
+    return lists.find((l) => l.name.toLowerCase().includes(lowerName));
+  }
+
+  getListById(listId: string): List | undefined {
+    const lists = this.getAllLists();
+    return lists.find((l) => l.id === listId);
+  }
+
+  setAllLists(lists: List[]): void {
     if (!this.data) return;
 
-    this.data.lists = {
-      todo,
-      doing,
-      done,
-    };
+    const indexed: Record<string, List> = {};
+    for (const list of lists) {
+      indexed[list.id] = list;
+    }
+    this.data.lists = indexed;
   }
 
   updateSyncTime(): void {

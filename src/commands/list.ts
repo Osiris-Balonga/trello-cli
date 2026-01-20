@@ -9,12 +9,17 @@ import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
 
+interface ListOptions {
+  all?: boolean;
+}
+
 export function createListCommand(): Command {
   const list = new Command('list');
 
   list
     .description(t('cli.commands.list'))
-    .action(async () => {
+    .option('-a, --all', t('cli.options.listAll'))
+    .action(async (options: ListOptions) => {
       const spinner = ora(t('list.loading')).start();
 
       try {
@@ -27,11 +32,20 @@ export function createListCommand(): Command {
         }
 
         const cards = await client.cards.listByBoard(boardId);
+        const lists = cache.getAllLists();
+        const currentMemberId = cache.getCurrentMemberId();
 
         spinner.succeed(t('list.loaded'));
 
         logger.print(chalk.bold(`\n${cache.getBoardName()}`));
-        displayCardsByList(cards, cache.getLists());
+
+        if (options.all) {
+          displayCardsByList(cards, lists, { cache });
+        } else if (currentMemberId) {
+          displayCardsByList(cards, lists, { memberId: currentMemberId, cache });
+        } else {
+          displayCardsByList(cards, lists, { cache });
+        }
       } catch (error) {
         spinner.fail(t('list.failed'));
         handleCommandError(error);

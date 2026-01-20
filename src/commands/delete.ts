@@ -4,6 +4,7 @@ import ora from 'ora';
 import chalk from 'chalk';
 import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
+import { getNumberedCards } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
@@ -11,6 +12,7 @@ import { logger } from '../utils/logger.js';
 
 interface DeleteOptions {
   force?: boolean;
+  all?: boolean;
 }
 
 export function createDeleteCommand(): Command {
@@ -20,14 +22,15 @@ export function createDeleteCommand(): Command {
     .description(t('cli.commands.delete'))
     .argument('<cardNumber>', t('cli.arguments.cardNumber'))
     .option('-f, --force', t('cli.options.force'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (cardNumberStr: string, options: DeleteOptions) => {
-      await handleDelete(parseInt(cardNumberStr, 10), options.force ?? false);
+      await handleDelete(parseInt(cardNumberStr, 10), options.force ?? false, options.all ?? false);
     });
 
   return del;
 }
 
-async function handleDelete(cardNumber: number, force: boolean): Promise<void> {
+async function handleDelete(cardNumber: number, force: boolean, all: boolean): Promise<void> {
   try {
     const cache = await loadCache();
     const boardId = cache.getBoardId();
@@ -37,20 +40,22 @@ async function handleDelete(cardNumber: number, force: boolean): Promise<void> {
     }
 
     const client = await createTrelloClient();
-    const cards = await client.cards.listByBoard(boardId);
+    const allCards = await client.cards.listByBoard(boardId);
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
+    const card = numberedCards.find((c) => c.displayNumber === cardNumber);
+
+    if (!card) {
       throw new TrelloValidationError(
-        t('delete.invalidCard', { max: cards.length }),
+        t('delete.invalidCard', { max: numberedCards.length }),
         'cardNumber'
       );
     }
-
-    const card = cards[cardNumber - 1];
-    const lists = cache.getLists();
-    const listName =
-      Object.values(lists).find((l) => l.id === card.idList)?.name ??
-      t('common.unknown');
+    const list = cache.getListById(card.idList);
+    const listName = list?.name ?? t('common.unknown');
 
     logger.print(chalk.yellow(`\n⚠️  ${t('delete.warning')}\n`));
     logger.print(`${t('delete.cardLabel')} "${card.name}"`);

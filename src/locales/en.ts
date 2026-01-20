@@ -133,6 +133,14 @@ export default {
     configFile: 'Config file:',
   },
 
+  // Table headers
+  table: {
+    title: 'Title',
+    labels: 'Labels',
+    members: 'Members',
+    due: 'Due',
+  },
+
   // Auth command
   auth: {
     title: 'Trello API Key Authentication',
@@ -223,6 +231,7 @@ export default {
     prompts: {
       title: 'Card title:',
       description: 'Description (optional):',
+      list: 'Select target list:',
     },
     validation: {
       titleRequired: 'Title required',

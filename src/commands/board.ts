@@ -56,7 +56,7 @@ async function handleBoardInfo(): Promise<void> {
 
     const members = cache.getMembers();
     const labels = cache.getLabels();
-    const lists = cache.getLists();
+    const lists = cache.getAllLists();
 
     const memberCount = Object.keys(members).length;
     const labelCount = Object.keys(labels).length;

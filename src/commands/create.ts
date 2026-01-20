@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { input, confirm } from '@inquirer/prompts';
+import { input, confirm, select } from '@inquirer/prompts';
 import ora from 'ora';
 import chalk from 'chalk';
 import { loadCache } from '../utils/load-cache.js';
@@ -26,7 +26,7 @@ export function createCreateCommand(): Command {
     .option('--due <date>', t('cli.options.due'))
     .option('-l, --labels <names>', t('cli.options.labels'))
     .option('-m, --members <usernames>', t('cli.options.members'))
-    .option('--list <alias>', t('cli.options.list'), 'todo')
+    .option('--list <name>', t('cli.options.list'))
     .action(async (title: string | undefined, rawOptions: unknown) => {
       try {
         const validationResult = CreateCardOptionsSchema.safeParse(rawOptions);
@@ -80,12 +80,27 @@ export function createCreateCommand(): Command {
           desc = await input({ message: t('create.prompts.description') });
         }
 
-        const list = cache.getListByAlias(options.list);
-        if (!list) {
+        let list = options.list ? cache.getListByName(options.list) : undefined;
+
+        if (options.list && !list) {
+          const availableLists = cache.getAllLists().map((l) => l.name).join(', ');
           throw new TrelloError(
-            t('create.errors.listNotFound', { list: options.list }),
+            t('create.errors.listNotFound', { list: options.list }) + ` (${t('common.available')}: ${availableLists})`,
             'LIST_NOT_FOUND'
           );
+        }
+
+        if (!list) {
+          const lists = cache.getAllLists();
+          const selectedListId = await select({
+            message: t('create.prompts.list'),
+            choices: lists.map((l) => ({ name: l.name, value: l.id })),
+          });
+          const selectedList = lists.find((l) => l.id === selectedListId);
+          if (!selectedList) {
+            throw new TrelloError(t('create.errors.listNotFound', { list: selectedListId }), 'LIST_NOT_FOUND');
+          }
+          list = selectedList;
         }
 
         const params: Partial<CreateCardParams> &

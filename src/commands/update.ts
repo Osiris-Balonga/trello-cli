@@ -4,12 +4,13 @@ import ora from 'ora';
 import chalk from 'chalk';
 import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
+import { getNumberedCards } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { Resolver } from '../core/resolver.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
-import type { UpdateCardParams, Card } from '../api/types.js';
+import type { UpdateCardParams } from '../api/types.js';
 
 export function createUpdateCommand(): Command {
   const update = new Command('update');
@@ -24,6 +25,7 @@ export function createUpdateCommand(): Command {
     .option('-m, --members <usernames>', t('cli.options.members'))
     .option('--archive', t('cli.options.archive'))
     .option('--unarchive', t('cli.options.unarchive'))
+    .option('-a, --all', t('cli.options.listAll'))
     .action(
       async (
         cardNumberStr: string,
@@ -35,6 +37,7 @@ export function createUpdateCommand(): Command {
           members?: string;
           archive?: boolean;
           unarchive?: boolean;
+          all?: boolean;
         }
       ) => {
         try {
@@ -51,18 +54,22 @@ export function createUpdateCommand(): Command {
           }
 
           const spinner = ora(t('list.loading')).start();
-          const cards = await client.cards.listByBoard(boardId);
+          const allCards = await client.cards.listByBoard(boardId);
+          const lists = cache.getAllLists();
+          const currentMemberId = cache.getCurrentMemberId();
+          const memberId = options.all ? undefined : currentMemberId;
+          const numberedCards = getNumberedCards(allCards, lists, { memberId });
           spinner.stop();
 
           const cardNumber = parseInt(cardNumberStr, 10);
-          if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
+          const card = numberedCards.find((c) => c.displayNumber === cardNumber);
+
+          if (!card) {
             throw new TrelloValidationError(
-              t('update.errors.invalidCard', { max: cards.length }),
+              t('update.errors.invalidCard', { max: numberedCards.length }),
               'cardNumber'
             );
           }
-
-          const card: Card = cards[cardNumber - 1];
 
           const hasOptions =
             options.name ||

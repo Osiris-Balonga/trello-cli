@@ -26,7 +26,7 @@ export const CreateCardOptionsSchema = z.object({
     )
     .pipe(z.array(z.string().min(1, 'Empty username')))
     .optional(),
-  list: z.enum(['todo', 'doing', 'done']).default('todo'),
+  list: z.string().optional(),
 });
 
 export type CreateCardOptions = z.infer<typeof CreateCardOptionsSchema>;

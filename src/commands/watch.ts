@@ -2,15 +2,16 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { loadCache } from '../utils/load-cache.js';
 import { createTrelloClient } from '../utils/create-client.js';
+import { formatDate, formatDueDate, getNumberedCards } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
-import { formatDate, formatDueDate } from '../utils/display.js';
 import type { Cache } from '../core/cache.js';
 
 interface WatchOptions {
   interval?: string;
+  all?: boolean;
 }
 
 export function createWatchCommand(): Command {
@@ -20,10 +21,12 @@ export function createWatchCommand(): Command {
     .description(t('cli.commands.watch'))
     .argument('<cardNumber>', t('cli.arguments.cardNumber'))
     .option('-i, --interval <seconds>', t('cli.options.interval'), '30')
+    .option('-a, --all', t('cli.options.listAll'))
     .action(async (cardNumberStr: string, options: WatchOptions) => {
       await handleWatch(
         parseInt(cardNumberStr, 10),
-        parseInt(options.interval || '30', 10)
+        parseInt(options.interval || '30', 10),
+        options.all ?? false
       );
     });
 
@@ -32,7 +35,8 @@ export function createWatchCommand(): Command {
 
 async function handleWatch(
   cardNumber: number,
-  intervalSeconds: number
+  intervalSeconds: number,
+  all: boolean
 ): Promise<void> {
   try {
     const cache = await loadCache();
@@ -43,16 +47,20 @@ async function handleWatch(
     }
 
     const client = await createTrelloClient();
-    const cards = await client.cards.listByBoard(boardId);
+    const allCards = await client.cards.listByBoard(boardId);
+    const lists = cache.getAllLists();
+    const currentMemberId = cache.getCurrentMemberId();
+    const memberId = all ? undefined : currentMemberId;
+    const numberedCards = getNumberedCards(allCards, lists, { memberId });
 
-    if (isNaN(cardNumber) || cardNumber < 1 || cardNumber > cards.length) {
+    const card = numberedCards.find((c) => c.displayNumber === cardNumber);
+
+    if (!card) {
       throw new TrelloValidationError(
-        t('watch.invalidCard', { max: cards.length }),
+        t('watch.invalidCard', { max: numberedCards.length }),
         'cardNumber'
       );
     }
-
-    const card = cards[cardNumber - 1];
     let lastState = JSON.stringify(card);
 
     logger.print(
@@ -103,7 +111,7 @@ async function handleWatch(
 }
 
 function getListNameById(listId: string, cache: Cache): string {
-  const lists = cache.getLists();
+  const lists = cache.getAllLists();
   for (const list of Object.values(lists)) {
     if (list.id === listId) {
       return list.name;

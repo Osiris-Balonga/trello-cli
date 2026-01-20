@@ -19,7 +19,11 @@ export function createInitCommand(): Command {
 
       try {
         const client = await createTrelloClient();
-        const boards = await client.boards.listByMember();
+
+        const [boards, currentMember] = await Promise.all([
+          client.boards.listByMember(),
+          client.members.getMe(),
+        ]);
 
         if (boards.length === 0) {
           throw new TrelloError(
@@ -54,33 +58,11 @@ export function createInitCommand(): Command {
           client.labels.listByBoard(boardId),
         ]);
 
-        if (lists.length < 3) {
-          spinner.warn(t('init.lessLists'));
-          logger.print(
-            chalk.yellow(t('init.lessListsWarning'))
-          );
-        }
-
         spinner.stop();
 
-        const todo = await select({
-          message: t('init.selectTodo'),
-          choices: lists.map((l) => ({ name: l.name, value: l })),
-        });
-
-        const doing = await select({
-          message: t('init.selectDoing'),
-          choices: lists.map((l) => ({ name: l.name, value: l })),
-        });
-
-        const done = await select({
-          message: t('init.selectDone'),
-          choices: lists.map((l) => ({ name: l.name, value: l })),
-        });
-
         const cache = new Cache();
-        await cache.init(selectedBoard.id, selectedBoard.name);
-        cache.setLists(todo, doing, done);
+        await cache.init(selectedBoard.id, selectedBoard.name, currentMember.id);
+        cache.setAllLists(lists);
         cache.setMembers(members);
         cache.setLabels(labels);
         cache.updateSyncTime();
@@ -94,6 +76,8 @@ export function createInitCommand(): Command {
         logger.print(
           chalk.gray(t('init.configSaved', { path: `${process.cwd()}/.trello-cli.json` }))
         );
+        logger.print(chalk.gray(t('init.loggedAs', { username: currentMember.username })));
+        logger.print(chalk.gray(t('init.listsCached', { count: lists.length })));
         logger.print(chalk.gray(t('init.membersCached', { count: members.length })));
         logger.print(chalk.gray(`${t('init.labelsCached', { count: labels.length })}\n`));
       } catch (error) {

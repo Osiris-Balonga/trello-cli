@@ -34,30 +34,15 @@ async function handleSync(): Promise<void> {
   try {
     const client = await createTrelloClient();
 
-    // Fetch all data in parallel
     const [members, labels, lists] = await Promise.all([
       client.members.listByBoard(boardId),
       client.labels.listByBoard(boardId),
       client.lists.listByBoard(boardId),
     ]);
 
-    // Update members and labels
     cache.setMembers(members);
     cache.setLabels(labels);
-
-    // Update lists while preserving existing aliases
-    const currentLists = cache.getLists();
-    if (currentLists.todo && currentLists.doing && currentLists.done) {
-      // Find updated list data by ID
-      const todoUpdated = lists.find((l) => l.id === currentLists.todo.id);
-      const doingUpdated = lists.find((l) => l.id === currentLists.doing.id);
-      const doneUpdated = lists.find((l) => l.id === currentLists.done.id);
-
-      if (todoUpdated && doingUpdated && doneUpdated) {
-        cache.setLists(todoUpdated, doingUpdated, doneUpdated);
-      }
-    }
-
+    cache.setAllLists(lists);
     cache.updateSyncTime();
     await cache.save();
 

@@ -62,9 +62,10 @@ async function handleExport(
     let cards = await client.cards.listByBoard(boardId);
 
     if (options.list) {
-      const list = cache.getListByAlias(options.list);
+      const list = cache.getListByName(options.list);
       if (!list) {
-        spinner.fail(t('export.invalidList', { list: options.list }));
+        const availableLists = cache.getAllLists().map((l) => l.name).join(', ');
+        spinner.fail(t('export.invalidList', { list: options.list }) + ` (${t('common.available')}: ${availableLists})`);
         return;
       }
       cards = cards.filter((card) => card.idList === list.id);

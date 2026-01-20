@@ -6,7 +6,8 @@ import { createTrelloClient } from '../utils/create-client.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
-import type { Card, List } from '../api/types.js';
+import type { Card } from '../api/types.js';
+import type { Cache } from '../core/cache.js';
 
 interface SearchOptions {
   inTitle?: boolean;
@@ -56,7 +57,7 @@ async function handleSearch(
 
     const members = cache.getMembers();
     const labels = cache.getLabels();
-    const lists = cache.getLists();
+    const lists = cache.getAllLists();
 
     const filtered = cards.filter((card) => {
       // Text search
@@ -96,7 +97,7 @@ async function handleSearch(
 
       // List filter
       if (options.list) {
-        const list = lists[options.list.toLowerCase()];
+        const list = cache.getListByName(options.list);
         if (!list || card.idList !== list.id) return false;
       }
 
@@ -111,7 +112,7 @@ async function handleSearch(
     }
 
     logger.print(chalk.green(t('search.found', { count: filtered.length, query })));
-    displayFilteredCards(filtered, lists);
+    displayFilteredCards(filtered, lists, cache);
   } catch (error) {
     spinner.fail(t('search.failed'));
     handleCommandError(error);
@@ -120,38 +121,28 @@ async function handleSearch(
 
 function displayFilteredCards(
   cards: Card[],
-  lists: Record<string, List>
+  _lists: unknown[],
+  cache: Cache
 ): void {
-  // Group cards by list for better display
-  const listOrder = ['todo', 'doing', 'done'];
-  const listIdToAlias: Record<string, string> = {};
-
-  for (const alias of listOrder) {
-    const list = lists[alias];
-    if (list) {
-      listIdToAlias[list.id] = alias;
-    }
-  }
+  const allLists = cache.getAllLists();
 
   // Group cards by list
   const groupedByList: Record<string, Card[]> = {};
   for (const card of cards) {
-    const alias = listIdToAlias[card.idList] || 'other';
-    if (!groupedByList[alias]) {
-      groupedByList[alias] = [];
+    const list = cache.getListById(card.idList);
+    const listName = list?.name ?? 'Unknown';
+    if (!groupedByList[listName]) {
+      groupedByList[listName] = [];
     }
-    groupedByList[alias].push(card);
+    groupedByList[listName].push(card);
   }
 
-  // Display in order
-  for (const alias of [...listOrder, 'other']) {
-    const listCards = groupedByList[alias];
+  // Display in list order (by position)
+  for (const list of allLists) {
+    const listCards = groupedByList[list.name];
     if (!listCards || listCards.length === 0) continue;
 
-    const list = lists[alias];
-    const listName = list?.name || 'Other';
-
-    logger.print(chalk.bold(`\n${listName} (${listCards.length})`));
+    logger.print(chalk.bold(`\n${list.name} (${listCards.length})`));
 
     listCards.forEach((card, index) => {
       const num = chalk.gray(`${index + 1}.`);

@@ -137,16 +137,16 @@ describe('CreateCardOptionsSchema', () => {
   });
 
   describe('list field', () => {
-    it('defaults to todo', () => {
+    it('is optional and undefined by default', () => {
       const result = CreateCardOptionsSchema.safeParse({});
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.list).toBe('todo');
+        expect(result.data.list).toBeUndefined();
       }
     });
 
-    it('accepts valid list values', () => {
-      const lists = ['todo', 'doing', 'done'] as const;
+    it('accepts any string list name', () => {
+      const lists = ['todo', 'doing', 'done', 'À faire', 'En cours', 'Custom List'];
       for (const list of lists) {
         const result = CreateCardOptionsSchema.safeParse({ list });
         expect(result.success).toBe(true);
@@ -155,32 +155,36 @@ describe('CreateCardOptionsSchema', () => {
         }
       }
     });
-
-    it('rejects invalid list value', () => {
-      const result = CreateCardOptionsSchema.safeParse({ list: 'invalid' });
-      expect(result.success).toBe(false);
-    });
   });
 });
 
 describe('formatZodErrors', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-15'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('formats single error', () => {
-    const result = CreateCardOptionsSchema.safeParse({ list: 'invalid' });
+    const result = CreateCardOptionsSchema.safeParse({ due: 'invalid' });
     if (!result.success) {
       const formatted = formatZodErrors(result.error);
-      expect(formatted).toContain('list');
+      expect(formatted).toContain('due');
     }
   });
 
   it('formats multiple errors', () => {
     const result = CreateCardOptionsSchema.safeParse({
       due: 'invalid',
-      list: 'invalid',
+      desc: 'a'.repeat(16385),
     });
     if (!result.success) {
       const formatted = formatZodErrors(result.error);
       expect(formatted).toContain('due');
-      expect(formatted).toContain('list');
+      expect(formatted).toContain('desc');
     }
   });
 });

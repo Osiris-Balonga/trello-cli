@@ -7,7 +7,6 @@ export interface BoardStats {
     created: number;
     completed: number;
     archived: number;
-    inProgress: number;
   };
   velocity: {
     cardsPerWeek: number;
@@ -15,6 +14,7 @@ export interface BoardStats {
   };
   members: Record<string, number>;
   labels: Record<string, number>;
+  lists: Record<string, number>;
   trends?: {
     productivityChange: number;
     cycleTimeChange: number;
@@ -50,18 +50,16 @@ export function calculateStats(
     (a) => a.type === 'createCard'
   ).length;
 
-  const doneList = cache.getListByAlias('done');
+  // Count completed cards (moved to any list) - simplified without alias dependency
   const completedInPeriod = periodActions.filter(
-    (a) => a.type === 'updateCard' && a.data?.listAfter?.id === doneList?.id
+    (a) => a.type === 'updateCard' && a.data?.listAfter
   ).length;
 
   const archivedInPeriod = periodActions.filter(
     (a) => a.type === 'updateCard' && a.data?.card?.closed === true
   ).length;
 
-  const doingList = cache.getListByAlias('doing');
-  const inProgress = cards.filter((c) => c.idList === doingList?.id).length;
-
+  // Count cards per member
   const members: Record<string, number> = {};
   const cacheMembers = cache.getMembers();
   for (const card of cards) {
@@ -73,6 +71,7 @@ export function calculateStats(
     }
   }
 
+  // Count cards per label
   const labels: Record<string, number> = {};
   const cacheLabels = cache.getLabels();
   for (const card of cards) {
@@ -81,6 +80,16 @@ export function calculateStats(
       if (label && label.name) {
         labels[label.name] = (labels[label.name] || 0) + 1;
       }
+    }
+  }
+
+  // Count cards per list
+  const lists: Record<string, number> = {};
+  const cacheLists = cache.getAllLists();
+  for (const card of cards) {
+    const list = cacheLists.find((l) => l.id === card.idList);
+    if (list) {
+      lists[list.name] = (lists[list.name] || 0) + 1;
     }
   }
 
@@ -106,7 +115,6 @@ export function calculateStats(
       created: createdInPeriod,
       completed: completedInPeriod,
       archived: archivedInPeriod,
-      inProgress,
     },
     velocity: {
       cardsPerWeek,
@@ -114,6 +122,7 @@ export function calculateStats(
     },
     members,
     labels,
+    lists,
     trends: {
       productivityChange,
       cycleTimeChange: 0,

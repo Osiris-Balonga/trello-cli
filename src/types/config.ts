@@ -26,14 +26,10 @@ export interface ProjectConfig {
   boardId: string;
   boardName: string;
   authMode?: 'apikey' | 'oauth';
+  currentMemberId?: string;
   members: Record<string, Member>;
   labels: Record<string, Label>;
-  lists: {
-    todo: List;
-    doing: List;
-    done: List;
-    [key: string]: List;
-  };
+  lists: Record<string, List>;
   lastSync: string | null;
   templates?: Record<string, CardTemplate>;
 }
