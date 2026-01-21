@@ -4,14 +4,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-green.svg)](https://nodejs.org/)
 
-Manage your Trello cards from the terminal. Create, move, and track tasks without leaving your development environment.
+A modern CLI for managing tasks from your terminal. Currently supports **Trello**, with GitHub Issues and Linear coming soon.
 
 ![Demo](./assets/demo.gif)
 
 ## Features
 
-- **Fast card management** - Create, move, update cards in seconds
-- **Git integration** - Auto-suggest card titles from branch names
+- **Multi-provider support** - Trello now, GitHub Issues & Linear coming soon
+- **Fast task management** - Create, move, update tasks in seconds
+- **Git integration** - Auto-suggest titles from branch names
 - **Interactive mode** - Arrow key navigation, no cryptic IDs
 - **Local cache** - Works offline, syncs when needed
 - **Multi-language** - English and French supported
@@ -23,17 +24,25 @@ Manage your Trello cards from the terminal. Create, move, and track tasks withou
 # Install globally
 npm install -g @osirisbalonga/trello-cli
 
-# Authenticate with Trello
-tt auth apikey
+# Authenticate
+tt auth trello apikey
 
-# Initialize your project
+# Initialize your project (select provider interactively)
 tt init
 
-# Start managing cards
-tt                          # List all cards
-tt create "Fix login bug"   # Create a card
-tt move 3 doing             # Move card #3 to Doing
+# Start managing tasks
+tt                          # List all tasks
+tt create "Fix login bug"   # Create a task
+tt move 3 doing             # Move task #3 to Doing
 ```
+
+## Supported Providers
+
+| Provider | Status | Auth Methods |
+|----------|--------|--------------|
+| Trello | Available | API Key, OAuth |
+| GitHub Issues | Coming soon | - |
+| Linear | Coming soon | - |
 
 ## Installation
 
@@ -59,52 +68,69 @@ After installation, the CLI is available as `tt` or `trello-cli`.
 
 ## Authentication
 
-### Get your Trello credentials
+### Trello
+
+#### API Key (Personal Use)
+
+```bash
+tt auth trello apikey
+# or (shortcut)
+tt auth apikey
+```
 
 1. Go to [trello.com/power-ups/admin](https://trello.com/power-ups/admin)
 2. Create a new Power-Up (or use an existing one)
 3. Generate an API Key
 4. Generate a Token with the "Generate Token" link
 
-### Configure the CLI
+#### OAuth (Teams)
 
 ```bash
-tt auth apikey
+tt auth trello oauth
+# or (shortcut)
+tt auth oauth
 ```
 
-You'll be prompted to enter your API Key and Token. Credentials are stored securely in `~/.config/trello-cli/config.json`.
+OAuth is ideal for enterprise/team environments:
+1. **Admin** creates a Power-Up and shares the API Key
+2. **Each user** runs `tt auth oauth` and authorizes with their own account
+3. Each user gets their own scoped token (can be revoked individually)
 
-### Verify authentication
+#### Verify Authentication
 
 ```bash
 tt auth status
+```
+
+## Project Setup
+
+Initialize the CLI for your project:
+
+```bash
+cd my-project
+tt init
+# 1. Select a provider (Trello, GitHub Issues, Linear)
+# 2. Select your board/project
+# 3. Configuration saved to .taskpilot.json
 ```
 
 ## Commands Reference
 
 ### `tt` / `tt list`
 
-List all cards from the configured board, grouped by list.
+List all tasks from the configured board, grouped by column.
 
 ```bash
-tt              # Quick dashboard
-tt list         # Same as above
-```
-
-### `tt init`
-
-Initialize Trello for the current project. Creates `.trello-cli.json` in the project root.
-
-```bash
-cd my-project
-tt init
-# Select your board interactively
-# Map your lists (To Do, Doing, Done)
+tt                    # Quick dashboard
+tt list               # Same as above
+tt list --mine        # Only my tasks
+tt list --table       # Table format
+tt list --member @john  # Filter by member
 ```
 
 ### `tt create`
 
-Create a new card.
+Create a new task.
 
 ```bash
 # Basic
@@ -116,96 +142,87 @@ tt create "Fix auth bug" --desc "Session expires too fast" --due 2025-02-15
 # With labels and members
 tt create "New feature" --labels "feature,urgent" --members "@john,@jane"
 
-# Specify target list
+# Specify target column
 tt create "Done task" --list done
 ```
 
 **Options:**
+
 | Option | Description |
 |--------|-------------|
-| `-d, --desc <text>` | Card description |
+| `-d, --desc <text>` | Task description |
 | `--due <date>` | Due date (YYYY-MM-DD) |
 | `-l, --labels <names>` | Comma-separated label names |
 | `-m, --members <usernames>` | Comma-separated usernames |
-| `--list <alias>` | Target list: `todo`, `doing`, `done` (default: `todo`) |
+| `--list <alias>` | Target column: `todo`, `doing`, `done` |
 
 ### `tt move`
 
-Move a card to another list.
+Move a task to another column.
 
 ```bash
-# With list argument
-tt move 3 doing      # Move card #3 to Doing
-tt move 5 done       # Move card #5 to Done
-
-# Interactive mode
-tt move 3            # Select list with arrow keys
+tt move 3 doing      # Move task #3 to Doing
+tt move 5 done       # Move task #5 to Done
+tt move 3            # Interactive mode (arrow keys)
 ```
 
 ### `tt show`
 
-Display card details.
+Display task details.
 
 ```bash
-tt show 3            # Show details for card #3
+tt show 3            # Show details for task #3
 ```
-
-Displays: title, list, due date, labels, members, description, and URL.
 
 ### `tt update`
 
-Update an existing card.
+Update an existing task.
 
 ```bash
-# Update title
 tt update 3 --name "New title"
-
-# Update description
 tt update 3 --desc "Updated description"
-
-# Update due date
 tt update 3 --due 2025-03-01
 tt update 3 --due clear        # Remove due date
-
-# Update labels and members
 tt update 3 --labels "bug,urgent"
-tt update 3 --members "@john"
-
-# Archive/unarchive
 tt update 3 --archive
-tt update 3 --unarchive
-
-# Interactive mode (no options)
-tt update 3
+tt update 3                    # Interactive mode
 ```
 
-**Options:**
-| Option | Description |
-|--------|-------------|
-| `-n, --name <title>` | New card title |
-| `-d, --desc <text>` | New description |
-| `--due <date>` | Due date (YYYY-MM-DD or "clear") |
-| `-l, --labels <names>` | Comma-separated label names |
-| `-m, --members <usernames>` | Comma-separated usernames |
-| `--archive` | Archive the card |
-| `--unarchive` | Unarchive the card |
+### `tt sync`
 
-### `tt members`
-
-Manage board members.
+Sync local cache with remote provider.
 
 ```bash
-tt members list              # List all members
-tt members list --refresh    # Refresh from Trello
+tt sync              # Refresh members, labels, columns
 ```
 
-### `tt labels`
+### `tt search`
 
-Manage board labels.
+Search tasks by keyword.
 
 ```bash
-tt labels list               # List all labels
-tt labels list --refresh     # Refresh from Trello
+tt search "login"
+tt search "bug" --list todo
+```
+
+### `tt due`
+
+List tasks by due date.
+
+```bash
+tt due               # Tasks due soon
+tt due --overdue     # Overdue tasks only
+tt due --week        # Due this week
+```
+
+### `tt members` / `tt labels`
+
+Manage board members and labels.
+
+```bash
+tt members list
+tt labels list
+tt labels list --refresh
 ```
 
 ### `tt config`
@@ -218,32 +235,20 @@ tt config get language       # Get specific setting
 tt config set language fr    # Set language to French
 ```
 
-**Configurable keys:**
-- `language` - Interface language (`en`, `fr`)
-
 ### `tt auth`
 
 Manage authentication.
 
 ```bash
-tt auth apikey     # Configure API key authentication (personal use)
-tt auth oauth      # OAuth flow for teams (shared org API key)
-tt auth status     # Check authentication status
+tt auth trello apikey   # Trello API key auth
+tt auth trello oauth    # Trello OAuth flow
+tt auth status          # Check auth status
+tt auth logout          # Clear credentials
 ```
-
-#### OAuth for Teams
-
-OAuth is ideal for enterprise/team environments where you cannot distribute API tokens to everyone:
-
-1. **Admin** creates a Power-Up on [trello.com/power-ups/admin](https://trello.com/power-ups/admin)
-2. **Admin** shares only the API Key with team members
-3. **Each user** runs `tt auth oauth` and authorizes with their own Trello account
-
-This way, each user gets their own scoped token tied to their account, which can be revoked individually.
 
 ## Configuration
 
-### Global config
+### Global Config
 
 Located at `~/.config/trello-cli/config.json`:
 
@@ -254,30 +259,27 @@ Located at `~/.config/trello-cli/config.json`:
 }
 ```
 
-### Project config
+### Project Config
 
-Created by `tt init` at `.trello-cli.json`:
+Created by `tt init` at `.taskpilot.json`:
 
 ```json
 {
+  "provider": "trello",
   "boardId": "abc123",
   "boardName": "My Project",
-  "lists": {
-    "todo": { "id": "list1", "name": "To Do" },
-    "doing": { "id": "list2", "name": "In Progress" },
-    "done": { "id": "list3", "name": "Done" }
-  },
-  "members": { ... },
-  "labels": { ... },
+  "columns": [...],
+  "members": [...],
+  "labels": [...],
   "lastSync": "2025-01-15T10:00:00Z"
 }
 ```
 
-> **Note:** Add `.trello-cli.json` to your `.gitignore` - it contains board-specific IDs.
+> **Note:** Add `.taskpilot.json` to your `.gitignore` - it contains board-specific IDs.
 
 ## Git Integration
 
-When creating cards without a title, the CLI suggests a title based on your current Git branch:
+When creating tasks, the CLI suggests titles based on your Git branch:
 
 ```bash
 # On branch: feature/PROJ-123-add-user-auth
@@ -292,7 +294,7 @@ Branch patterns supported:
 
 ## Internationalization
 
-The CLI automatically detects your system language. Supported languages:
+The CLI automatically detects your system language. Supported:
 
 - English (`en`) - default
 - French (`fr`)
@@ -303,27 +305,40 @@ Change manually:
 tt config set language fr
 ```
 
+## Architecture
+
+The CLI uses a provider abstraction layer for multi-provider support:
+
+```
+Commands (tt create, tt move, etc.)
+       ↓
+   Provider Interface
+       ↓
+┌──────┴──────┐
+│   Trello    │  GitHub  │  Linear
+│  Provider   │ (coming) │ (coming)
+└─────────────┘
+```
+
+### Unified Data Models
+
+| Model | Trello | GitHub | Linear |
+|-------|--------|--------|--------|
+| Task | Card | Issue | Issue |
+| Column | List | Project Column | State |
+| Board | Board | Repository/Project | Team/Project |
+| Label | Label | Label | Label |
+| Member | Member | Collaborator | User |
+
 ## Local Development
 
 ```bash
-# Clone the repository
 git clone https://github.com/osirisbalonga/trello-cli.git
 cd trello-cli
-
-# Install dependencies
 pnpm install
-
-# Build
 pnpm build
-
-# Run tests
 pnpm test
-
-# Install globally for testing
-pnpm local:install
-
-# Uninstall
-pnpm local:uninstall
+pnpm local:install    # Install globally for testing
 ```
 
 ### Scripts
@@ -333,7 +348,7 @@ pnpm local:uninstall
 | `pnpm dev` | Watch mode |
 | `pnpm build` | Production build |
 | `pnpm test` | Run tests |
-| `pnpm test:coverage` | Run tests with coverage |
+| `pnpm test:coverage` | Tests with coverage |
 | `pnpm lint` | Lint code |
 | `pnpm typecheck` | Type check |
 
