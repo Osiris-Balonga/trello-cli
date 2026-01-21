@@ -450,6 +450,7 @@ export default {
     recentComments: 'Commentaires récents',
     lastUpdated: 'Dernière mise à jour',
     invalidCard: 'Numéro de carte invalide. Doit être entre 1 et {{max}}.',
+    noChangesBackoff: 'Aucun changement détecté ({{count}} vérifications). Intervalle augmenté.',
   },
 
   // Export command

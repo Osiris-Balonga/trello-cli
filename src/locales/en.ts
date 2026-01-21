@@ -445,6 +445,7 @@ export default {
     recentComments: 'Recent comments',
     lastUpdated: 'Last updated',
     invalidCard: 'Invalid card number. Must be between 1 and {{max}}.',
+    noChangesBackoff: 'No changes detected ({{count}} checks). Interval increased.',
   },
 
   // Export command

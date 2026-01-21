@@ -1,18 +1,27 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { loadCache } from '../utils/load-cache.js';
-import { createTrelloClient } from '../utils/create-client.js';
-import { formatDate, formatDueDate, getNumberedCards } from '../utils/display.js';
+import { withCardContext, findCardByNumber } from '../utils/command-context.js';
+import { formatDate, formatDueDate } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
-import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
 import type { Cache } from '../core/cache.js';
+import type { Card, TrelloAction } from '../api/types.js';
+import type { TrelloClient } from '../api/trello-client.js';
 
 interface WatchOptions {
   interval?: string;
   all?: boolean;
 }
+
+interface CardState {
+  card: Card;
+  comments: TrelloAction[];
+  fetchedAt: Date;
+}
+
+const MAX_UNCHANGED_BEFORE_BACKOFF = 5;
+const MAX_INTERVAL_SECONDS = 120;
 
 export function createWatchCommand(): Command {
   const watch = new Command('watch');
@@ -33,107 +42,26 @@ export function createWatchCommand(): Command {
   return watch;
 }
 
-async function handleWatch(
-  cardNumber: number,
-  intervalSeconds: number,
-  all: boolean
-): Promise<void> {
-  try {
-    const cache = await loadCache();
-    const boardId = cache.getBoardId();
+async function fetchCardState(
+  client: TrelloClient,
+  cardId: string
+): Promise<CardState> {
+  // Parallel fetch for card and comments
+  const [card, comments] = await Promise.all([
+    client.cards.get(cardId),
+    client.cards.getComments(cardId),
+  ]);
 
-    if (!boardId) {
-      throw new TrelloError(t('errors.cacheNotFound'), 'NOT_INITIALIZED');
-    }
-
-    const client = await createTrelloClient();
-    const allCards = await client.cards.listByBoard(boardId);
-    const lists = cache.getAllLists();
-    const currentMemberId = cache.getCurrentMemberId();
-    const memberId = all ? undefined : currentMemberId;
-    const numberedCards = getNumberedCards(allCards, lists, { memberId });
-
-    if (numberedCards.length === 0) {
-      const message = memberId
-        ? t('display.noCardsAvailableAssigned')
-        : t('display.noCardsAvailable');
-      throw new TrelloValidationError(message, 'cardNumber');
-    }
-
-    const card = numberedCards.find((c) => c.displayNumber === cardNumber);
-
-    if (!card) {
-      throw new TrelloValidationError(
-        t('watch.invalidCard', { max: numberedCards.length }),
-        'cardNumber'
-      );
-    }
-    let lastState = JSON.stringify(card);
-
-    logger.print(
-      chalk.bold.cyan(`\n${t('watch.watching')}: "${card.name}"\n`)
-    );
-    logger.print(chalk.gray(`${t('watch.pressCtrlC')}\n`));
-
-    await displayCardStatus(client, card.id, cache);
-
-    const intervalId = setInterval(async () => {
-      try {
-        const updatedCard = await client.cards.get(card.id);
-        const currentState = JSON.stringify(updatedCard);
-
-        logger.clear();
-        logger.print(
-          chalk.bold.cyan(`\n${t('watch.watching')}: "${updatedCard.name}"\n`)
-        );
-        logger.print(chalk.gray(`${t('watch.pressCtrlC')}\n`));
-
-        if (currentState !== lastState) {
-          logger.print(chalk.yellow(`${t('watch.changed')}\n`));
-          lastState = currentState;
-        }
-
-        await displayCardStatus(client, card.id, cache);
-
-        logger.print(
-          chalk.gray(
-            `\n${t('watch.refreshing', { seconds: intervalSeconds })}...`
-          )
-        );
-      } catch {
-        logger.print(chalk.red(t('watch.error')));
-      }
-    }, intervalSeconds * 1000);
-
-    process.on('SIGINT', () => {
-      clearInterval(intervalId);
-      logger.print(chalk.gray(`\n\n${t('watch.stopped')}`));
-      process.exit(0);
-    });
-
-    await new Promise(() => {});
-  } catch (error) {
-    handleCommandError(error);
-  }
+  return { card, comments, fetchedAt: new Date() };
 }
 
 function getListNameById(listId: string, cache: Cache): string {
-  const lists = cache.getAllLists();
-  for (const list of Object.values(lists)) {
-    if (list.id === listId) {
-      return list.name;
-    }
-  }
-  return t('common.unknown');
+  const list = cache.getListById(listId);
+  return list?.name ?? t('common.unknown');
 }
 
-async function displayCardStatus(
-  client: Awaited<ReturnType<typeof createTrelloClient>>,
-  cardId: string,
-  cache: Cache
-): Promise<void> {
-  const card = await client.cards.get(cardId);
-  const comments = await client.cards.getComments(cardId);
+function displayCardStatus(state: CardState, cache: Cache): void {
+  const { card, comments } = state;
 
   const listName = getListNameById(card.idList, cache);
   logger.print(`${t('watch.status')}: ${listName}`);
@@ -168,7 +96,122 @@ async function displayCardStatus(
 
   logger.print(
     chalk.gray(
-      `\n${t('watch.lastUpdated')}: ${formatDate(new Date().toISOString())}`
+      `\n${t('watch.lastUpdated')}: ${formatDate(state.fetchedAt.toISOString())}`
     )
   );
+}
+
+function hasStateChanged(
+  previous: CardState | null,
+  current: CardState
+): boolean {
+  if (!previous) return true;
+
+  // Compare card state
+  const cardChanged =
+    JSON.stringify(previous.card) !== JSON.stringify(current.card);
+
+  // Compare comment count
+  const commentsChanged = previous.comments.length !== current.comments.length;
+
+  return cardChanged || commentsChanged;
+}
+
+async function handleWatch(
+  cardNumber: number,
+  baseIntervalSeconds: number,
+  all: boolean
+): Promise<void> {
+  try {
+    await withCardContext({ all }, async ({ cache, client, numberedCards, memberId }) => {
+      const card = findCardByNumber(
+        numberedCards,
+        cardNumber,
+        memberId,
+        'watch.invalidCard'
+      );
+
+      let previousState: CardState | null = null;
+      let unchangedCount = 0;
+      let currentInterval = baseIntervalSeconds;
+
+      logger.print(
+        chalk.bold.cyan(`\n${t('watch.watching')}: "${card.name}"\n`)
+      );
+      logger.print(chalk.gray(`${t('watch.pressCtrlC')}\n`));
+
+      const poll = async (): Promise<void> => {
+        try {
+          const currentState = await fetchCardState(client, card.id);
+
+          logger.clear();
+          logger.print(
+            chalk.bold.cyan(
+              `\n${t('watch.watching')}: "${currentState.card.name}"\n`
+            )
+          );
+          logger.print(chalk.gray(`${t('watch.pressCtrlC')}\n`));
+
+          const changed = hasStateChanged(previousState, currentState);
+
+          if (changed) {
+            if (previousState) {
+              logger.print(chalk.yellow(`${t('watch.changed')}\n`));
+            }
+            unchangedCount = 0;
+            currentInterval = baseIntervalSeconds;
+          } else {
+            unchangedCount++;
+
+            // Exponential backoff when no changes detected
+            if (unchangedCount > MAX_UNCHANGED_BEFORE_BACKOFF) {
+              currentInterval = Math.min(
+                currentInterval * 1.5,
+                MAX_INTERVAL_SECONDS
+              );
+            }
+          }
+
+          displayCardStatus(currentState, cache);
+          previousState = currentState;
+
+          // Show backoff info if active
+          if (currentInterval > baseIntervalSeconds) {
+            logger.print(
+              chalk.gray(
+                `\n${t('watch.noChangesBackoff', { count: unchangedCount })}`
+              )
+            );
+          }
+
+          logger.print(
+            chalk.gray(
+              `\n${t('watch.refreshing', { seconds: Math.round(currentInterval) })}...`
+            )
+          );
+
+          setTimeout(poll, currentInterval * 1000);
+        } catch {
+          logger.print(chalk.red(t('watch.error')));
+          // On error, reset to base interval and retry
+          currentInterval = baseIntervalSeconds;
+          setTimeout(poll, currentInterval * 1000);
+        }
+      };
+
+      // Initial fetch
+      await poll();
+
+      // Handle graceful shutdown
+      process.on('SIGINT', () => {
+        logger.print(chalk.gray(`\n\n${t('watch.stopped')}`));
+        process.exit(0);
+      });
+
+      // Keep the process alive
+      await new Promise(() => {});
+    });
+  } catch (error) {
+    handleCommandError(error);
+  }
 }
