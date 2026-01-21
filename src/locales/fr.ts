@@ -9,6 +9,7 @@ export default {
     noCardsAvailableAssigned: 'Aucune carte ne vous est assignée. Utilisez --all pour voir toutes les cartes du board.',
     showingAllCards: 'Affichage de toutes les cartes du board',
     showingMyCards: 'Affichage de vos cartes assignées',
+    filteredView: 'Filtre : vos cartes uniquement',
   },
 
   // CLI descriptions
@@ -110,6 +111,7 @@ export default {
       inTitle: 'Rechercher dans les titres uniquement',
       inDesc: 'Rechercher dans les descriptions uniquement',
       listFilter: 'Filtrer par liste (todo/doing/done)',
+      listAll: 'Afficher toutes les cartes (pas seulement les vôtres)',
     },
     arguments: {
       cardNumber: 'Numéro de carte de la liste',

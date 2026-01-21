@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import ora from 'ora';
 import chalk from 'chalk';
 import pLimit from 'p-limit';
 import {
@@ -7,6 +6,7 @@ import {
   requireCards,
   resolveCardNumbers,
 } from '../utils/command-context.js';
+import { createProgressBar } from '../utils/ui.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
@@ -147,12 +147,12 @@ async function handleBatchMove(
           return;
         }
 
-        const spinner = ora(
-          t('batch.moving', { count: targetCards.length })
-        ).start();
+        logger.print(chalk.cyan(`\n${t('batch.moving', { count: targetCards.length })}\n`));
+        const progressBar = createProgressBar({ total: targetCards.length });
         const limit = pLimit(options.parallel ? 5 : 1);
         let success = 0;
         let failed = 0;
+        let processed = 0;
 
         await Promise.all(
           targetCards.map((card) =>
@@ -163,11 +163,14 @@ async function handleBatchMove(
               } catch {
                 failed++;
               }
+              processed++;
+              progressBar.update(processed, { task: card.name.slice(0, 30) });
             })
           )
         );
 
-        spinner.succeed(t('batch.moveComplete', { success, failed }));
+        progressBar.stop();
+        logger.print(chalk.green(`\n✓ ${t('batch.moveComplete', { success, failed })}`))
       }
     );
   } catch (error) {
@@ -211,12 +214,12 @@ async function handleBatchArchive(
         }
 
         const spinnerKey = archive ? 'batch.archiving' : 'batch.unarchiving';
-        const spinner = ora(
-          t(spinnerKey, { count: targetCards.length })
-        ).start();
+        logger.print(chalk.cyan(`\n${t(spinnerKey, { count: targetCards.length })}\n`));
+        const progressBar = createProgressBar({ total: targetCards.length });
         const limit = pLimit(options.parallel ? 5 : 1);
         let success = 0;
         let failed = 0;
+        let processed = 0;
 
         await Promise.all(
           targetCards.map((card) =>
@@ -231,14 +234,17 @@ async function handleBatchArchive(
               } catch {
                 failed++;
               }
+              processed++;
+              progressBar.update(processed, { task: card.name.slice(0, 30) });
             })
           )
         );
 
+        progressBar.stop();
         const completeKey = archive
           ? 'batch.archiveComplete'
           : 'batch.unarchiveComplete';
-        spinner.succeed(t(completeKey, { success, failed }));
+        logger.print(chalk.green(`\n✓ ${t(completeKey, { success, failed })}`));
       }
     );
   } catch (error) {
@@ -291,12 +297,12 @@ async function handleBatchLabel(
           return;
         }
 
-        const spinner = ora(
-          t('batch.labeling', { count: targetCards.length })
-        ).start();
+        logger.print(chalk.cyan(`\n${t('batch.labeling', { count: targetCards.length })}\n`));
+        const progressBar = createProgressBar({ total: targetCards.length });
         const limit = pLimit(options.parallel ? 5 : 1);
         let success = 0;
         let failed = 0;
+        let processed = 0;
 
         await Promise.all(
           targetCards.map((card) =>
@@ -311,11 +317,14 @@ async function handleBatchLabel(
               } catch {
                 failed++;
               }
+              processed++;
+              progressBar.update(processed, { task: card.name.slice(0, 30) });
             })
           )
         );
 
-        spinner.succeed(t('batch.labelComplete', { success, failed, action }));
+        progressBar.stop();
+        logger.print(chalk.green(`\n✓ ${t('batch.labelComplete', { success, failed, action })}`));
       }
     );
   } catch (error) {
@@ -369,12 +378,12 @@ async function handleBatchAssign(
           return;
         }
 
-        const spinner = ora(
-          t('batch.assigning', { count: targetCards.length })
-        ).start();
+        logger.print(chalk.cyan(`\n${t('batch.assigning', { count: targetCards.length })}\n`));
+        const progressBar = createProgressBar({ total: targetCards.length });
         const limit = pLimit(options.parallel ? 5 : 1);
         let success = 0;
         let failed = 0;
+        let processed = 0;
 
         await Promise.all(
           targetCards.map((card) =>
@@ -389,11 +398,14 @@ async function handleBatchAssign(
               } catch {
                 failed++;
               }
+              processed++;
+              progressBar.update(processed, { task: card.name.slice(0, 30) });
             })
           )
         );
 
-        spinner.succeed(t('batch.assignComplete', { success, failed, action }));
+        progressBar.stop();
+        logger.print(chalk.green(`\n✓ ${t('batch.assignComplete', { success, failed, action })}`));
       }
     );
   } catch (error) {

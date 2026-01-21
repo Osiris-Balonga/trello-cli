@@ -1,7 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { withCardContext, findCardByNumber } from '../utils/command-context.js';
-import { formatDate, formatDueDate } from '../utils/display.js';
+import { formatDate } from '../utils/display.js';
+import { displayWatchBox } from '../utils/ui.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
@@ -60,45 +61,50 @@ function getListNameById(listId: string, cache: Cache): string {
   return list?.name ?? t('common.unknown');
 }
 
-function displayCardStatus(state: CardState, cache: Cache): void {
+function displayCardStatus(
+  state: CardState,
+  cache: Cache,
+  interval: number,
+  unchangedCount: number
+): void {
   const { card, comments } = state;
 
   const listName = getListNameById(card.idList, cache);
-  logger.print(`${t('watch.status')}: ${listName}`);
 
-  if (card.due) {
-    logger.print(`${t('watch.due')}: ${formatDueDate(card.due)}`);
-  }
-
+  // Get member names
+  const memberNames: string[] = [];
   if (card.idMembers?.length > 0) {
     const members = cache.getMembers();
-    const memberNames = card.idMembers.map((id: string) => {
+    for (const id of card.idMembers) {
       const member = Object.values(members).find((m) => m.id === id);
-      return member ? `@${member.username}` : id;
-    });
-    logger.print(`${t('watch.members')}: ${memberNames.join(', ')}`);
-  }
-
-  logger.print(`${t('watch.comments')}: ${comments.length}`);
-
-  if (comments.length > 0) {
-    logger.print(chalk.gray(`\n${t('watch.recentComments')}:`));
-    const recentComments = comments.slice(0, 3);
-    for (const comment of recentComments) {
-      const date = formatDate(comment.date);
-      const author = comment.memberCreator?.username || 'unknown';
-      const text = comment.data?.text || '';
-      const truncatedText =
-        text.length > 50 ? `${text.substring(0, 50)}...` : text;
-      logger.print(chalk.gray(`  [${date}] @${author}: ${truncatedText}`));
+      if (member) {
+        memberNames.push(`@${member.username}`);
+      }
     }
   }
 
-  logger.print(
-    chalk.gray(
-      `\n${t('watch.lastUpdated')}: ${formatDate(state.fetchedAt.toISOString())}`
-    )
-  );
+  // Get label names
+  const labelNames: string[] = [];
+  if (card.idLabels?.length > 0) {
+    const labels = cache.getLabels();
+    for (const [name, label] of Object.entries(labels)) {
+      if (card.idLabels.includes(label.id)) {
+        labelNames.push(name);
+      }
+    }
+  }
+
+  displayWatchBox({
+    title: card.name,
+    status: listName,
+    due: card.due ?? undefined,
+    members: memberNames.length > 0 ? memberNames : undefined,
+    labels: labelNames.length > 0 ? labelNames : undefined,
+    commentCount: comments.length,
+    lastUpdated: formatDate(state.fetchedAt.toISOString()),
+    interval: Math.round(interval),
+    unchangedCount: unchangedCount > 5 ? unchangedCount : undefined,
+  });
 }
 
 function hasStateChanged(
@@ -145,18 +151,12 @@ async function handleWatch(
           const currentState = await fetchCardState(client, card.id);
 
           logger.clear();
-          logger.print(
-            chalk.bold.cyan(
-              `\n${t('watch.watching')}: "${currentState.card.name}"\n`
-            )
-          );
-          logger.print(chalk.gray(`${t('watch.pressCtrlC')}\n`));
 
           const changed = hasStateChanged(previousState, currentState);
 
           if (changed) {
             if (previousState) {
-              logger.print(chalk.yellow(`${t('watch.changed')}\n`));
+              logger.print(chalk.yellow.bold(`\n⚡ ${t('watch.changed')}\n`));
             }
             unchangedCount = 0;
             currentInterval = baseIntervalSeconds;
@@ -172,27 +172,12 @@ async function handleWatch(
             }
           }
 
-          displayCardStatus(currentState, cache);
+          displayCardStatus(currentState, cache, currentInterval, unchangedCount);
           previousState = currentState;
-
-          // Show backoff info if active
-          if (currentInterval > baseIntervalSeconds) {
-            logger.print(
-              chalk.gray(
-                `\n${t('watch.noChangesBackoff', { count: unchangedCount })}`
-              )
-            );
-          }
-
-          logger.print(
-            chalk.gray(
-              `\n${t('watch.refreshing', { seconds: Math.round(currentInterval) })}...`
-            )
-          );
 
           setTimeout(poll, currentInterval * 1000);
         } catch {
-          logger.print(chalk.red(t('watch.error')));
+          logger.print(chalk.red(`\n${t('watch.error')}`));
           // On error, reset to base interval and retry
           currentInterval = baseIntervalSeconds;
           setTimeout(poll, currentInterval * 1000);
