@@ -179,14 +179,16 @@ export function createUpdateCommand(): Command {
           logger.print(chalk.gray(`${t('common.url')} ${updatedCard.shortUrl}`));
 
           const changes: string[] = [];
-          if (params.name) changes.push(t('update.changes.title'));
-          if (params.desc !== undefined) changes.push(t('update.changes.description'));
-          if (params.due !== undefined)
+          if (params.name) { changes.push(t('update.changes.title')); }
+          if (params.desc !== undefined) { changes.push(t('update.changes.description')); }
+          if (params.due !== undefined) {
             changes.push(params.due ? t('update.changes.dueDate') : t('update.changes.dueDateCleared'));
-          if (params.idLabels) changes.push(t('update.changes.labels'));
-          if (params.idMembers) changes.push(t('update.changes.members'));
-          if (params.closed !== undefined)
+          }
+          if (params.idLabels) { changes.push(t('update.changes.labels')); }
+          if (params.idMembers) { changes.push(t('update.changes.members')); }
+          if (params.closed !== undefined) {
             changes.push(params.closed ? t('update.changes.archived') : t('update.changes.unarchived'));
+          }
 
           logger.print(chalk.gray(t('update.changed', { changes: changes.join(', ') })));
         } catch (error) {

@@ -67,7 +67,7 @@ describe('Resolver', () => {
         username: 'johndoe',
       });
 
-      const ids = resolver.resolveMembers(['JohnDoe']);
+      resolver.resolveMembers(['JohnDoe']);
 
       expect(mockCache.getMemberByUsername).toHaveBeenCalledWith('johndoe');
     });

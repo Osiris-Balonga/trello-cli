@@ -104,14 +104,18 @@ async function handleDue(options: DueOptions): Promise<void> {
       displayCategory(t('due.thisMonth'), thisMonth, now);
     } else {
       // Show all categories
-      if (overdue.length > 0)
+      if (overdue.length > 0) {
         displayCategory(`⚠️  ${t('due.overdue')}`, overdue, now);
-      if (today.length > 0)
+      }
+      if (today.length > 0) {
         displayCategory(`📅 ${t('due.today')}`, today, now);
-      if (thisWeek.length > 0)
+      }
+      if (thisWeek.length > 0) {
         displayCategory(`📅 ${t('due.thisWeek')}`, thisWeek, now);
-      if (later.length > 0)
+      }
+      if (later.length > 0) {
         displayCategory(`📅 ${t('due.later')}`, later, now);
+      }
     }
 
     logger.print(

@@ -1,4 +1,5 @@
-import simpleGit, { SimpleGit } from 'simple-git';
+import simpleGit from 'simple-git';
+import type { SimpleGit } from 'simple-git';
 
 let gitInstance: SimpleGit | null = null;
 

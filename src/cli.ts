@@ -1,4 +1,5 @@
-import { Command, OutputConfiguration } from 'commander';
+import { Command } from 'commander';
+import type { OutputConfiguration } from 'commander';
 import { createAuthCommand } from './commands/auth.js';
 import { createInitCommand } from './commands/init.js';
 import { createListCommand } from './commands/list.js';
