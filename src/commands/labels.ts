@@ -8,6 +8,7 @@ import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
+import { trelloLabelsToLabels } from '../utils/compat.js';
 
 const LABEL_COLORS: Record<string, string> = {
   green: '#61bd4f',
@@ -69,7 +70,7 @@ export function createLabelsCommand(): Command {
           const spinner = ora(t('labels.fetching')).start();
           const client = await createTrelloClient();
           const labelsList = await client.labels.listByBoard(boardId);
-          cache.setLabels(labelsList);
+          cache.setLabels(trelloLabelsToLabels(labelsList));
           cache.updateSyncTime();
           await cache.save();
           spinner.succeed(t('labels.refreshed'));

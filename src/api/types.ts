@@ -1,113 +1,13 @@
-export interface AuthConfig {
-  type: 'apikey' | 'oauth';
-  apiKey?: string;
-  token?: string;
-  orgApiKey?: string;
-}
-
-export interface TrelloConfig {
-  auth: AuthConfig;
-  baseURL?: string;
-  timeout?: number;
-}
-
-export interface Board {
-  id: string;
-  name: string;
-  desc: string;
-  closed: boolean;
-  url: string;
-}
-
-export interface List {
-  id: string;
-  name: string;
-  closed: boolean;
-  pos: number;
-  idBoard: string;
-}
-
-export interface Card {
-  id: string;
-  name: string;
-  desc: string;
-  closed: boolean;
-  idList: string;
-  idBoard: string;
-  due: string | null;
-  start: string | null;
-  dueComplete: boolean;
-  idMembers: string[];
-  idLabels: string[];
-  url: string;
-  shortUrl: string;
-  dateLastActivity: string;
-}
-
-export interface Member {
-  id: string;
-  username: string;
-  fullName: string;
-  initials: string;
-  avatarUrl: string;
-  email?: string;
-}
-
-export interface Label {
-  id: string;
-  name: string;
-  color: string;
-  idBoard: string;
-}
-
-export interface CreateCardParams {
-  name: string;
-  idList: string;
-  desc?: string;
-  due?: string;
-  start?: string;
-  dueComplete?: boolean;
-  idLabels?: string[];
-  idMembers?: string[];
-  pos?: 'top' | 'bottom' | number;
-}
-
-export interface UpdateCardParams {
-  name?: string;
-  desc?: string;
-  closed?: boolean;
-  idList?: string;
-  due?: string;
-  start?: string;
-  dueComplete?: boolean;
-  idLabels?: string[];
-  idMembers?: string[];
-  pos?: 'top' | 'bottom' | number;
-}
-
-export interface TrelloAction {
-  id: string;
-  type: string;
-  date: string;
-  memberCreator?: {
-    id: string;
-    username: string;
-    fullName: string;
-  };
-  data: {
-    text?: string;
-    card?: {
-      id: string;
-      name: string;
-      closed?: boolean;
-    };
-    listAfter?: {
-      id: string;
-      name: string;
-    };
-    listBefore?: {
-      id: string;
-      name: string;
-    };
-  };
-}
+// Backwards compatibility - re-exports from providers/trello
+export type {
+  TrelloBoard as Board,
+  TrelloList as List,
+  TrelloCard as Card,
+  TrelloMember as Member,
+  TrelloLabel as Label,
+  TrelloAction,
+  TrelloCreateCardParams as CreateCardParams,
+  TrelloUpdateCardParams as UpdateCardParams,
+  TrelloAuthConfig as AuthConfig,
+  TrelloClientConfig as TrelloConfig,
+} from '../providers/trello/types.js';

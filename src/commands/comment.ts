@@ -9,6 +9,7 @@ import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
+import { cardsToTasks } from '../utils/compat.js';
 
 interface CommentOptions {
   list?: boolean;
@@ -45,7 +46,7 @@ async function handleAddComment(cardNumber: number, text?: string, all?: boolean
     }
 
     const client = await createTrelloClient();
-    const allCards = await client.cards.listByBoard(boardId);
+    const allCards = cardsToTasks(await client.cards.listByBoard(boardId));
     const lists = cache.getAllLists();
     const currentMemberId = cache.getCurrentMemberId();
     const memberId = all ? undefined : currentMemberId;
@@ -98,7 +99,7 @@ async function handleListComments(cardNumber: number, all?: boolean): Promise<vo
 
     const spinner = ora(t('comment.loading')).start();
     const client = await createTrelloClient();
-    const allCards = await client.cards.listByBoard(boardId);
+    const allCards = cardsToTasks(await client.cards.listByBoard(boardId));
     const lists = cache.getAllLists();
     const currentMemberId = cache.getCurrentMemberId();
     const memberId = all ? undefined : currentMemberId;

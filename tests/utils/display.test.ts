@@ -4,7 +4,8 @@ import {
   formatDueDate,
   getNumberedCards,
 } from '../../src/utils/display.js';
-import type { Card, List } from '../../src/api/types.js';
+import type { Task } from '../../src/models/task.js';
+import type { Column } from '../../src/models/column.js';
 
 // Mock i18n
 vi.mock('../../src/utils/i18n.js', () => ({
@@ -18,25 +19,30 @@ vi.mock('../../src/utils/logger.js', () => ({
   },
 }));
 
-const createMockCard = (overrides: Partial<Card> = {}): Card => ({
+const createMockTask = (overrides: Partial<Task> = {}): Task => ({
   id: 'card-1',
-  name: 'Test Card',
-  idList: 'list-1',
-  idLabels: [],
-  idMembers: ['member-1'],
-  due: null,
-  desc: '',
-  shortUrl: 'https://trello.com/c/abc123',
-  dateLastActivity: '2025-01-01T00:00:00.000Z',
-  closed: false,
-  pos: 1,
+  number: 0,
+  title: 'Test Card',
+  description: '',
+  status: 'open',
+  columnId: 'list-1',
+  columnName: 'To Do',
+  createdAt: new Date('2025-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2025-01-01T00:00:00.000Z'),
+  dueDate: null,
+  dueComplete: false,
+  assigneeIds: ['member-1'],
+  labelIds: [],
+  url: 'https://trello.com/c/abc123',
+  archived: false,
+  _raw: {},
   ...overrides,
 });
 
-const mockLists: List[] = [
-  { id: 'list-1', name: 'To Do', pos: 1 },
-  { id: 'list-2', name: 'In Progress', pos: 2 },
-  { id: 'list-3', name: 'Done', pos: 3 },
+const mockLists: Column[] = [
+  { id: 'list-1', name: 'To Do', position: 1, closed: false, _raw: {} },
+  { id: 'list-2', name: 'In Progress', position: 2, closed: false, _raw: {} },
+  { id: 'list-3', name: 'Done', position: 3, closed: false, _raw: {} },
 ];
 
 describe('display utilities', () => {
@@ -92,13 +98,13 @@ describe('display utilities', () => {
 
   describe('getNumberedCards', () => {
     it('should assign display numbers to cards', () => {
-      const cards = [
-        createMockCard({ id: '1' }),
-        createMockCard({ id: '2' }),
-        createMockCard({ id: '3' }),
+      const tasks = [
+        createMockTask({ id: '1' }),
+        createMockTask({ id: '2' }),
+        createMockTask({ id: '3' }),
       ];
 
-      const numbered = getNumberedCards(cards, mockLists);
+      const numbered = getNumberedCards(tasks, mockLists);
 
       expect(numbered[0].displayNumber).toBe(1);
       expect(numbered[1].displayNumber).toBe(2);
@@ -106,26 +112,26 @@ describe('display utilities', () => {
     });
 
     it('should filter out cards from unknown lists', () => {
-      const cards = [
-        createMockCard({ id: '1', idList: 'list-1' }),
-        createMockCard({ id: '2', idList: 'unknown-list' }),
-        createMockCard({ id: '3', idList: 'list-2' }),
+      const tasks = [
+        createMockTask({ id: '1', columnId: 'list-1' }),
+        createMockTask({ id: '2', columnId: 'unknown-list' }),
+        createMockTask({ id: '3', columnId: 'list-2' }),
       ];
 
-      const numbered = getNumberedCards(cards, mockLists);
+      const numbered = getNumberedCards(tasks, mockLists);
 
       expect(numbered).toHaveLength(2);
       expect(numbered.map((c) => c.id)).toEqual(['1', '3']);
     });
 
     it('should filter by member when memberId provided', () => {
-      const cards = [
-        createMockCard({ id: '1', idMembers: ['member-1'] }),
-        createMockCard({ id: '2', idMembers: ['member-2'] }),
-        createMockCard({ id: '3', idMembers: ['member-1', 'member-2'] }),
+      const tasks = [
+        createMockTask({ id: '1', assigneeIds: ['member-1'] }),
+        createMockTask({ id: '2', assigneeIds: ['member-2'] }),
+        createMockTask({ id: '3', assigneeIds: ['member-1', 'member-2'] }),
       ];
 
-      const numbered = getNumberedCards(cards, mockLists, {
+      const numbered = getNumberedCards(tasks, mockLists, {
         memberId: 'member-1',
       });
 
@@ -134,12 +140,12 @@ describe('display utilities', () => {
     });
 
     it('should include all cards when no member filter', () => {
-      const cards = [
-        createMockCard({ id: '1', idMembers: ['member-1'] }),
-        createMockCard({ id: '2', idMembers: ['member-2'] }),
+      const tasks = [
+        createMockTask({ id: '1', assigneeIds: ['member-1'] }),
+        createMockTask({ id: '2', assigneeIds: ['member-2'] }),
       ];
 
-      const numbered = getNumberedCards(cards, mockLists);
+      const numbered = getNumberedCards(tasks, mockLists);
 
       expect(numbered).toHaveLength(2);
     });
@@ -151,15 +157,15 @@ describe('display utilities', () => {
     });
 
     it('should maintain sequential numbering after filtering', () => {
-      const cards = [
-        createMockCard({ id: '1', idMembers: ['member-1'] }),
-        createMockCard({ id: '2', idMembers: ['member-2'] }),
-        createMockCard({ id: '3', idMembers: ['member-1'] }),
-        createMockCard({ id: '4', idMembers: ['member-2'] }),
-        createMockCard({ id: '5', idMembers: ['member-1'] }),
+      const tasks = [
+        createMockTask({ id: '1', assigneeIds: ['member-1'] }),
+        createMockTask({ id: '2', assigneeIds: ['member-2'] }),
+        createMockTask({ id: '3', assigneeIds: ['member-1'] }),
+        createMockTask({ id: '4', assigneeIds: ['member-2'] }),
+        createMockTask({ id: '5', assigneeIds: ['member-1'] }),
       ];
 
-      const numbered = getNumberedCards(cards, mockLists, {
+      const numbered = getNumberedCards(tasks, mockLists, {
         memberId: 'member-1',
       });
 

@@ -1,18 +1,18 @@
 import chalk from 'chalk';
 import Table from 'cli-table3';
 import { format, formatDistanceToNow, isPast, isToday, isThisWeek } from 'date-fns';
-import type { Card, List } from '../api/types.js';
+import type { Task, Column } from '../models/index.js';
 import type { Cache } from '../core/cache.js';
 import { t } from './i18n.js';
 import { logger } from './logger.js';
 
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+export function formatDate(dateString: string | Date): string {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
   return format(date, 'yyyy-MM-dd HH:mm');
 }
 
-export function formatDueDate(dateString: string): string {
-  const date = new Date(dateString);
+export function formatDueDate(dateString: string | Date): string {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
   const formatted = format(date, 'yyyy-MM-dd');
 
   if (isPast(date) && !isToday(date)) {
@@ -27,34 +27,54 @@ export function formatDueDate(dateString: string): string {
   return formatted;
 }
 
-export interface NumberedCard extends Card {
+export interface NumberedTask extends Task {
   displayNumber: number;
+  // Backwards compatibility aliases
+  name: string;
+  desc: string;
+  idList: string;
+  idMembers: string[];
+  idLabels: string[];
+  due: string | null;
+  closed: boolean;
+  shortUrl: string;
+  dateLastActivity: string;
 }
 
-export interface GetNumberedCardsOptions {
+export interface GetNumberedTasksOptions {
   memberId?: string;
   cache?: Cache;
   isFiltered?: boolean;
 }
 
-export function getNumberedCards(
-  cards: Card[],
-  lists: List[],
-  options: GetNumberedCardsOptions = {}
-): NumberedCard[] {
-  const listIds = new Set(lists.map((l) => l.id));
+export function getNumberedTasks(
+  tasks: Task[],
+  columns: Column[],
+  options: GetNumberedTasksOptions = {}
+): NumberedTask[] {
+  const columnIds = new Set(columns.map((c) => c.id));
   const { memberId } = options;
 
   let globalIndex = 0;
-  return cards
-    .filter((card) => {
-      if (!listIds.has(card.idList)) return false;
-      if (memberId && !card.idMembers.includes(memberId)) return false;
+  return tasks
+    .filter((task) => {
+      if (!columnIds.has(task.columnId)) return false;
+      if (memberId && !task.assigneeIds.includes(memberId)) return false;
       return true;
     })
-    .map((card) => ({
-      ...card,
+    .map((task) => ({
+      ...task,
       displayNumber: ++globalIndex,
+      // Backwards compatibility aliases
+      name: task.title,
+      desc: task.description ?? '',
+      idList: task.columnId,
+      idMembers: task.assigneeIds,
+      idLabels: task.labelIds,
+      due: task.dueDate?.toISOString() ?? null,
+      closed: task.archived,
+      shortUrl: task.url,
+      dateLastActivity: task.updatedAt.toISOString(),
     }));
 }
 
@@ -63,10 +83,10 @@ function truncate(str: string, maxLen: number): string {
   return str.slice(0, maxLen - 1) + '…';
 }
 
-function formatDue(due: string | null): string {
+function formatDue(due: Date | null): string {
   if (!due) return chalk.gray('-');
 
-  const date = new Date(due);
+  const date = due;
   const formatted = format(date, 'MM/dd');
 
   if (isPast(date) && !isToday(date)) {
@@ -102,7 +122,7 @@ function formatLabels(labelIds: string[], cache?: Cache): string {
 
   for (const [name, label] of Object.entries(labels)) {
     if (labelIds.includes(label.id)) {
-      const colorFn = LABEL_COLORS[label.color] || ((t: string) => chalk.gray(`[${t}]`));
+      const colorFn = LABEL_COLORS[label.color ?? ''] || ((t: string) => chalk.gray(`[${t}]`));
       labelNames.push(colorFn(name));
     }
   }
@@ -125,16 +145,16 @@ function formatMembers(memberIds: string[], cache?: Cache): string {
   return usernames.length > 0 ? chalk.cyan(usernames.join(' ')) : chalk.gray('-');
 }
 
-export function displayCardsByList(
-  cards: Card[],
-  lists: List[],
-  options: GetNumberedCardsOptions = {}
+export function displayTasksByColumn(
+  tasks: Task[],
+  columns: Column[],
+  options: GetNumberedTasksOptions = {}
 ): void {
-  const numberedCards = getNumberedCards(cards, lists, options);
-  const sortedLists = [...lists].sort((a, b) => a.pos - b.pos);
+  const numberedTasks = getNumberedTasks(tasks, columns, options);
+  const sortedColumns = [...columns].sort((a, b) => a.position - b.position);
   const { cache, memberId, isFiltered } = options;
 
-  const totalDisplayed = numberedCards.length;
+  const totalDisplayed = numberedTasks.length;
   const isFilteredByMember = isFiltered !== undefined ? isFiltered : !!memberId;
 
   if (totalDisplayed === 0) {
@@ -146,11 +166,11 @@ export function displayCardsByList(
     return;
   }
 
-  for (const list of sortedLists) {
-    const listCards = numberedCards.filter((c) => c.idList === list.id);
-    if (listCards.length === 0) continue;
+  for (const column of sortedColumns) {
+    const columnTasks = numberedTasks.filter((task) => task.columnId === column.id);
+    if (columnTasks.length === 0) continue;
 
-    logger.print(chalk.bold(`\n${list.name} (${listCards.length})`));
+    logger.print(chalk.bold(`\n${column.name} (${columnTasks.length})`));
 
     const table = new Table({
       chars: {
@@ -171,17 +191,17 @@ export function displayCardsByList(
       chalk.gray(t('table.due')),
     ]);
 
-    for (const card of listCards) {
-      const title = card.closed
-        ? chalk.strikethrough.gray(truncate(card.name, 38))
-        : truncate(card.name, 38);
+    for (const task of columnTasks) {
+      const title = task.archived
+        ? chalk.strikethrough.gray(truncate(task.title, 38))
+        : truncate(task.title, 38);
 
       table.push([
-        chalk.yellow(String(card.displayNumber)),
+        chalk.yellow(String(task.displayNumber)),
         title,
-        formatLabels(card.idLabels, cache),
-        truncate(formatMembers(card.idMembers, cache), 12),
-        formatDue(card.due),
+        formatLabels(task.labelIds, cache),
+        truncate(formatMembers(task.assigneeIds, cache), 12),
+        formatDue(task.dueDate),
       ]);
     }
 
@@ -194,3 +214,9 @@ export function displayCardsByList(
     logger.print(chalk.gray(`\n${t('display.totalCards', { count: totalDisplayed })}\n`));
   }
 }
+
+// Backwards compatibility aliases
+export type NumberedCard = NumberedTask;
+export type GetNumberedCardsOptions = GetNumberedTasksOptions;
+export const getNumberedCards = getNumberedTasks;
+export const displayCardsByList = displayTasksByColumn;

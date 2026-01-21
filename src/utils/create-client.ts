@@ -1,4 +1,5 @@
-import { TrelloClient } from '../api/trello-client.js';
+// Backwards compatibility - re-exports from new provider system
+import { TrelloClient } from '../providers/trello/client.js';
 import { config } from './config.js';
 import { TrelloAuthError } from './errors.js';
 

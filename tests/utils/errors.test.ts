@@ -15,7 +15,8 @@ describe('TrelloError', () => {
     expect(error.message).toBe('Test error');
     expect(error.code).toBeUndefined();
     expect(error.statusCode).toBeUndefined();
-    expect(error.name).toBe('TrelloError');
+    // TrelloError is now an alias for TaskPilotError
+    expect(error.name).toBe('TaskPilotError');
   });
 
   it('creates error with code', () => {

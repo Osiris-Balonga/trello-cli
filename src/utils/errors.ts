@@ -1,13 +1,13 @@
 import type { AxiosError } from 'axios';
 
-export class TrelloError extends Error {
+export class TaskPilotError extends Error {
   constructor(
     message: string,
     public code?: string,
     public statusCode?: number
   ) {
     super(message);
-    this.name = 'TrelloError';
+    this.name = 'TaskPilotError';
 
     if (process.env.NODE_ENV !== 'production') {
       Error.captureStackTrace(this, this.constructor);
@@ -19,7 +19,7 @@ export class TrelloError extends Error {
   }
 }
 
-export class TrelloNetworkError extends TrelloError {
+export class TaskPilotNetworkError extends TaskPilotError {
   constructor(
     public readonly isTimeout: boolean = false,
     public readonly isOffline: boolean = false
@@ -33,7 +33,7 @@ export class TrelloNetworkError extends TrelloError {
   }
 }
 
-export class TrelloAPIError extends TrelloError {
+export class TaskPilotAPIError extends TaskPilotError {
   public readonly details?: Record<string, unknown>;
 
   constructor(axiosError: AxiosError<{ message?: string }>) {
@@ -51,19 +51,19 @@ export class TrelloAPIError extends TrelloError {
   }
 }
 
-export class TrelloAuthError extends TrelloError {
+export class TaskPilotAuthError extends TaskPilotError {
   constructor(message: string = 'Authentication failed') {
     super(message, 'AUTH_ERROR', 401);
   }
 }
 
-export class TrelloNotFoundError extends TrelloError {
+export class TaskPilotNotFoundError extends TaskPilotError {
   constructor(resource: string) {
     super(`${resource} not found`, 'NOT_FOUND', 404);
   }
 }
 
-export class TrelloValidationError extends TrelloError {
+export class TaskPilotValidationError extends TaskPilotError {
   constructor(
     message: string,
     public readonly field?: string
@@ -72,7 +72,7 @@ export class TrelloValidationError extends TrelloError {
   }
 }
 
-export class TrelloRateLimitError extends TrelloError {
+export class TaskPilotRateLimitError extends TaskPilotError {
   constructor(retryAfter?: number) {
     super(
       `Rate limit exceeded${retryAfter ? `. Retry after ${retryAfter}s` : ''}`,
@@ -81,3 +81,12 @@ export class TrelloRateLimitError extends TrelloError {
     );
   }
 }
+
+// Backwards compatibility aliases (for Trello provider)
+export const TrelloError = TaskPilotError;
+export const TrelloNetworkError = TaskPilotNetworkError;
+export const TrelloAPIError = TaskPilotAPIError;
+export const TrelloAuthError = TaskPilotAuthError;
+export const TrelloNotFoundError = TaskPilotNotFoundError;
+export const TrelloValidationError = TaskPilotValidationError;
+export const TrelloRateLimitError = TaskPilotRateLimitError;

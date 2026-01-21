@@ -11,6 +11,7 @@ import { Resolver } from '../core/resolver.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
 import type { UpdateCardParams } from '../api/types.js';
+import { cardsToTasks } from '../utils/compat.js';
 
 export function createUpdateCommand(): Command {
   const update = new Command('update');
@@ -54,7 +55,7 @@ export function createUpdateCommand(): Command {
           }
 
           const spinner = ora(t('list.loading')).start();
-          const allCards = await client.cards.listByBoard(boardId);
+          const allCards = cardsToTasks(await client.cards.listByBoard(boardId));
           const lists = cache.getAllLists();
           const currentMemberId = cache.getCurrentMemberId();
           const memberId = options.all ? undefined : currentMemberId;

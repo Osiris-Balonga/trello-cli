@@ -6,6 +6,7 @@ import { getNumberedCards } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError, TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
+import { cardsToTasks } from '../utils/compat.js';
 
 interface ArchiveOptions {
   undo?: boolean;
@@ -37,7 +38,7 @@ async function handleArchive(cardNumber: number, undo: boolean, all: boolean): P
     }
 
     const client = await createTrelloClient();
-    const allCards = await client.cards.listByBoard(boardId);
+    const allCards = cardsToTasks(await client.cards.listByBoard(boardId));
     const lists = cache.getAllLists();
     const currentMemberId = cache.getCurrentMemberId();
     const memberId = all ? undefined : currentMemberId;

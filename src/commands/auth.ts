@@ -16,12 +16,25 @@ export function createAuthCommand(): Command {
 
   auth
     .description(t('cli.commands.auth'))
+    .addCommand(createTrelloAuthCommand())
+    // Backwards compatibility: tt auth apikey / tt auth oauth still work
     .addCommand(createApiKeyCommand())
     .addCommand(createOAuthCommand())
     .addCommand(createStatusCommand())
     .addCommand(createLogoutCommand());
 
   return auth;
+}
+
+function createTrelloAuthCommand(): Command {
+  const trello = new Command('trello');
+
+  trello
+    .description(t('cli.subcommands.auth.trello'))
+    .addCommand(createApiKeyCommand())
+    .addCommand(createOAuthCommand());
+
+  return trello;
 }
 
 function createApiKeyCommand(): Command {

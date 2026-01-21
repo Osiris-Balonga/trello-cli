@@ -52,6 +52,9 @@ export default {
         oauth: 'Authenticate via browser (interactive)',
         status: 'Show authentication status',
         logout: 'Remove stored credentials',
+        trello: 'Trello authentication methods',
+        github: 'GitHub authentication (coming soon)',
+        linear: 'Linear authentication (coming soon)',
       },
       members: {
         list: 'List all board members',
@@ -112,6 +115,7 @@ export default {
       inDesc: 'Search in descriptions only',
       listFilter: 'Filter by list (todo/doing/done)',
       listAll: 'Show all cards (not just assigned to you)',
+      provider: 'Task provider (trello, github, linear)',
     },
     arguments: {
       cardNumber: 'Card number from list',
@@ -145,6 +149,7 @@ export default {
     card: 'Card:',
     total: 'Total:',
     configFile: 'Config file:',
+    comingSoon: '(coming soon)',
   },
 
   // Table headers
@@ -209,7 +214,8 @@ export default {
 
   // Init command
   init: {
-    fetching: 'Fetching your Trello boards...',
+    selectProvider: 'Select a task provider:',
+    fetching: 'Fetching your boards...',
     loaded: 'Boards loaded',
     selectBoard: 'Select a board:',
     fetchingData: 'Fetching board data...',
@@ -221,12 +227,17 @@ export default {
     selectDone: 'Select "Done" list:',
     success: 'Board "{{name}}" configured for this project',
     configSaved: 'Config saved to: {{path}}',
+    provider: 'Provider: {{provider}}',
+    loggedAs: 'Logged as: @{{username}}',
+    listsCached: 'Lists cached: {{count}}',
     membersCached: 'Members cached: {{count}}',
     labelsCached: 'Labels cached: {{count}}',
     failed: 'Failed to initialize',
     errors: {
-      noBoards: 'No boards found. Create a board on Trello first.',
+      noBoards: 'No boards found. Create a board first.',
       boardNotFound: 'Board not found (ID: {{id}})',
+      unknownProvider: 'Unknown provider: {{provider}}. Available: trello, github, linear',
+      providerNotAvailable: '{{provider}} is not available yet. Coming soon!',
     },
   },
 

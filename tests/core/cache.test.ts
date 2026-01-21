@@ -25,7 +25,7 @@ describe('Cache', () => {
 
     it('returns true when cache file exists', async () => {
       await fs.writeFile(
-        path.join(tempDir, '.trello-cli.json'),
+        path.join(tempDir, '.taskpilot.json'),
         '{}',
         'utf-8'
       );
@@ -36,7 +36,7 @@ describe('Cache', () => {
 
   describe('init', () => {
     it('creates cache file with board data', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       const exists = await cache.exists();
       expect(exists).toBe(true);
@@ -46,7 +46,7 @@ describe('Cache', () => {
     });
 
     it('initializes with empty collections', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       expect(cache.getMembers()).toEqual({});
       expect(cache.getLabels()).toEqual({});
@@ -57,15 +57,16 @@ describe('Cache', () => {
   describe('load', () => {
     it('loads existing cache data', async () => {
       const data = {
+        provider: 'trello',
         boardId: 'board456',
         boardName: 'Test Board',
         members: {},
         labels: {},
-        lists: {},
+        columns: {},
         lastSync: '2025-01-01T00:00:00.000Z',
       };
       await fs.writeFile(
-        path.join(tempDir, '.trello-cli.json'),
+        path.join(tempDir, '.taskpilot.json'),
         JSON.stringify(data),
         'utf-8'
       );
@@ -86,27 +87,27 @@ describe('Cache', () => {
 
   describe('members', () => {
     it('sets and retrieves members', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       cache.setMembers([
-        { id: 'mem1', username: 'john', fullName: 'John Doe' },
-        { id: 'mem2', username: 'jane', fullName: 'Jane Doe' },
+        { id: 'mem1', username: 'john', displayName: 'John Doe', avatarUrl: null, _raw: {} },
+        { id: 'mem2', username: 'jane', displayName: 'Jane Doe', avatarUrl: null, _raw: {} },
       ]);
 
       const members = cache.getMembers();
       expect(Object.keys(members)).toHaveLength(2);
-      expect(members.john).toEqual({
+      expect(members.john).toMatchObject({
         id: 'mem1',
         username: 'john',
-        fullName: 'John Doe',
+        displayName: 'John Doe',
       });
     });
 
     it('retrieves member by username', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       cache.setMembers([
-        { id: 'mem1', username: 'John', fullName: 'John Doe' },
+        { id: 'mem1', username: 'John', displayName: 'John Doe', avatarUrl: null, _raw: {} },
       ]);
 
       const member = cache.getMemberByUsername('john');
@@ -114,7 +115,7 @@ describe('Cache', () => {
     });
 
     it('returns undefined for unknown username', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
       cache.setMembers([]);
 
       const member = cache.getMemberByUsername('unknown');
@@ -124,11 +125,11 @@ describe('Cache', () => {
 
   describe('labels', () => {
     it('sets and retrieves labels', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       cache.setLabels([
-        { id: 'lbl1', name: 'urgent', color: 'red' },
-        { id: 'lbl2', name: 'feature', color: 'green' },
+        { id: 'lbl1', name: 'urgent', color: 'red', _raw: {} },
+        { id: 'lbl2', name: 'feature', color: 'green', _raw: {} },
       ]);
 
       const labels = cache.getLabels();
@@ -136,20 +137,20 @@ describe('Cache', () => {
     });
 
     it('retrieves label by name (case-insensitive)', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
-      cache.setLabels([{ id: 'lbl1', name: 'Urgent', color: 'red' }]);
+      cache.setLabels([{ id: 'lbl1', name: 'Urgent', color: 'red', _raw: {} }]);
 
       const label = cache.getLabelByName('urgent');
       expect(label?.id).toBe('lbl1');
     });
 
     it('skips labels without names', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       cache.setLabels([
-        { id: 'lbl1', name: 'urgent', color: 'red' },
-        { id: 'lbl2', name: '', color: 'green' },
+        { id: 'lbl1', name: 'urgent', color: 'red', _raw: {} },
+        { id: 'lbl2', name: '', color: 'green', _raw: {} },
       ]);
 
       const labels = cache.getLabels();
@@ -159,12 +160,12 @@ describe('Cache', () => {
 
   describe('lists', () => {
     it('sets and retrieves lists', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       const lists = [
-        { id: 'list1', name: 'To Do', pos: 1 },
-        { id: 'list2', name: 'Doing', pos: 2 },
-        { id: 'list3', name: 'Done', pos: 3 },
+        { id: 'list1', name: 'To Do', position: 1, closed: false, _raw: {} },
+        { id: 'list2', name: 'Doing', position: 2, closed: false, _raw: {} },
+        { id: 'list3', name: 'Done', position: 3, closed: false, _raw: {} },
       ];
 
       cache.setAllLists(lists);
@@ -177,12 +178,12 @@ describe('Cache', () => {
     });
 
     it('retrieves list by name', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       cache.setAllLists([
-        { id: 'list1', name: 'To Do', pos: 1 },
-        { id: 'list2', name: 'In Progress', pos: 2 },
-        { id: 'list3', name: 'Complete', pos: 3 },
+        { id: 'list1', name: 'To Do', position: 1, closed: false, _raw: {} },
+        { id: 'list2', name: 'In Progress', position: 2, closed: false, _raw: {} },
+        { id: 'list3', name: 'Complete', position: 3, closed: false, _raw: {} },
       ]);
 
       const list = cache.getListByName('To Do');
@@ -190,11 +191,11 @@ describe('Cache', () => {
     });
 
     it('retrieves list by id', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       cache.setAllLists([
-        { id: 'list1', name: 'To Do', pos: 1 },
-        { id: 'list2', name: 'In Progress', pos: 2 },
+        { id: 'list1', name: 'To Do', position: 1, closed: false, _raw: {} },
+        { id: 'list2', name: 'In Progress', position: 2, closed: false, _raw: {} },
       ]);
 
       const list = cache.getListById('list2');
@@ -202,11 +203,11 @@ describe('Cache', () => {
     });
 
     it('finds list by partial name match', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       cache.setAllLists([
-        { id: 'list1', name: 'To Do', pos: 1 },
-        { id: 'list2', name: 'In Progress', pos: 2 },
+        { id: 'list1', name: 'To Do', position: 1, closed: false, _raw: {} },
+        { id: 'list2', name: 'In Progress', position: 2, closed: false, _raw: {} },
       ]);
 
       const list = cache.getListByName('progress');
@@ -225,7 +226,7 @@ describe('Cache', () => {
 
     it('updates and retrieves sync time', async () => {
       vi.setSystemTime(new Date('2025-01-15T10:00:00.000Z'));
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       cache.updateSyncTime();
 
@@ -233,7 +234,7 @@ describe('Cache', () => {
     });
 
     it('detects stale cache', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       vi.setSystemTime(new Date('2025-01-15T10:00:00.000Z'));
       cache.updateSyncTime();
@@ -243,7 +244,7 @@ describe('Cache', () => {
     });
 
     it('detects fresh cache', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
 
       vi.setSystemTime(new Date('2025-01-15T10:00:00.000Z'));
       cache.updateSyncTime();
@@ -253,20 +254,20 @@ describe('Cache', () => {
     });
 
     it('considers null lastSync as stale', async () => {
-      await cache.init('board123', 'My Board');
+      await cache.init('trello', 'board123', 'My Board');
       expect(cache.isStale()).toBe(true);
     });
   });
 
   describe('save', () => {
     it('persists data to file', async () => {
-      await cache.init('board123', 'My Board');
-      cache.setMembers([{ id: 'mem1', username: 'john', fullName: 'John' }]);
+      await cache.init('trello', 'board123', 'My Board');
+      cache.setMembers([{ id: 'mem1', username: 'john', displayName: 'John', avatarUrl: null, _raw: {} }]);
 
       await cache.save();
 
       const content = await fs.readFile(
-        path.join(tempDir, '.trello-cli.json'),
+        path.join(tempDir, '.taskpilot.json'),
         'utf-8'
       );
       const data = JSON.parse(content);

@@ -52,6 +52,9 @@ export default {
         oauth: 'S\'authentifier via navigateur (interactif)',
         status: 'Afficher le statut d\'authentification',
         logout: 'Supprimer les credentials stockés',
+        trello: 'Méthodes d\'authentification Trello',
+        github: 'Authentification GitHub (bientôt disponible)',
+        linear: 'Authentification Linear (bientôt disponible)',
       },
       members: {
         list: 'Lister tous les membres du board',
@@ -112,6 +115,7 @@ export default {
       inDesc: 'Rechercher dans les descriptions uniquement',
       listFilter: 'Filtrer par liste (todo/doing/done)',
       listAll: 'Afficher toutes les cartes (pas seulement les vôtres)',
+      provider: 'Provider de tâches (trello, github, linear)',
     },
     arguments: {
       cardNumber: 'Numéro de carte de la liste',
@@ -145,6 +149,7 @@ export default {
     card: 'Carte :',
     total: 'Total :',
     configFile: 'Fichier de config :',
+    comingSoon: '(bientôt disponible)',
   },
 
   // Table headers
@@ -209,7 +214,8 @@ export default {
 
   // Init command
   init: {
-    fetching: 'Récupération de vos boards Trello...',
+    selectProvider: 'Sélectionnez un provider de tâches :',
+    fetching: 'Récupération de vos boards...',
     loaded: 'Boards chargés',
     selectBoard: 'Sélectionnez un board :',
     fetchingData: 'Récupération des données du board...',
@@ -221,12 +227,17 @@ export default {
     selectDone: 'Sélectionnez la liste "Terminé" :',
     success: 'Board "{{name}}" configuré pour ce projet',
     configSaved: 'Configuration sauvegardée dans : {{path}}',
+    provider: 'Provider : {{provider}}',
+    loggedAs: 'Connecté en tant que : @{{username}}',
+    listsCached: 'Listes en cache : {{count}}',
     membersCached: 'Membres en cache : {{count}}',
     labelsCached: 'Labels en cache : {{count}}',
     failed: "Échec de l'initialisation",
     errors: {
-      noBoards: "Aucun board trouvé. Créez d'abord un board sur Trello.",
+      noBoards: "Aucun board trouvé. Créez d'abord un board.",
       boardNotFound: 'Board introuvable (ID : {{id}})',
+      unknownProvider: 'Provider inconnu : {{provider}}. Disponibles : trello, github, linear',
+      providerNotAvailable: '{{provider}} n\'est pas encore disponible. Bientôt !',
     },
   },
 

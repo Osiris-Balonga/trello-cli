@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import ora from 'ora';
 import chalk from 'chalk';
 import { withBoardContext } from '../utils/command-context.js';
-import { displayCardsByList } from '../utils/display.js';
+import { displayTasksByColumn } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
@@ -21,8 +21,8 @@ export function createListCommand(): Command {
       const spinner = ora(t('list.loading')).start();
 
       try {
-        await withBoardContext(async ({ cache, client, boardId, lists }) => {
-          const cards = await client.cards.listByBoard(boardId);
+        await withBoardContext(async ({ cache, provider, boardId, columns }) => {
+          const tasks = await provider.listTasks(boardId);
           const currentMemberId = cache.getCurrentMemberId();
 
           spinner.succeed(t('list.loaded'));
@@ -30,15 +30,15 @@ export function createListCommand(): Command {
           logger.print(chalk.bold(`\n${cache.getBoardName()}`));
 
           if (options.all) {
-            displayCardsByList(cards, lists, { cache, isFiltered: false });
+            displayTasksByColumn(tasks, columns, { cache, isFiltered: false });
           } else if (currentMemberId) {
-            displayCardsByList(cards, lists, {
+            displayTasksByColumn(tasks, columns, {
               memberId: currentMemberId,
               cache,
               isFiltered: true,
             });
           } else {
-            displayCardsByList(cards, lists, { cache, isFiltered: false });
+            displayTasksByColumn(tasks, columns, { cache, isFiltered: false });
           }
         });
       } catch (error) {

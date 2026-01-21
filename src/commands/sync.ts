@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import ora from 'ora';
 import chalk from 'chalk';
-import { createTrelloClient } from '../utils/create-client.js';
+import { createProvider } from '../utils/create-provider.js';
 import { Cache } from '../core/cache.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
@@ -32,17 +32,18 @@ async function handleSync(): Promise<void> {
   const spinner = ora(t('sync.syncing')).start();
 
   try {
-    const client = await createTrelloClient();
+    const providerType = cache.getProvider();
+    const provider = await createProvider(providerType);
 
-    const [members, labels, lists] = await Promise.all([
-      client.members.listByBoard(boardId),
-      client.labels.listByBoard(boardId),
-      client.lists.listByBoard(boardId),
+    const [members, labels, columns] = await Promise.all([
+      provider.listMembers(boardId),
+      provider.listLabels(boardId),
+      provider.getBoardColumns(boardId),
     ]);
 
     cache.setMembers(members);
     cache.setLabels(labels);
-    cache.setAllLists(lists);
+    cache.setColumns(columns);
     cache.updateSyncTime();
     await cache.save();
 
@@ -50,7 +51,7 @@ async function handleSync(): Promise<void> {
       t('sync.success', {
         members: members.length,
         labels: labels.length,
-        lists: lists.length,
+        lists: columns.length,
       })
     );
 

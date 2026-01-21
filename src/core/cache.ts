@@ -1,14 +1,24 @@
 import fs from 'fs/promises';
 import path from 'path';
-import type { ProjectConfig, CardTemplate } from '../types/config.js';
-import type { Member, Label, List } from '../api/types.js';
+import type {
+  ProjectConfig,
+  TaskTemplate,
+  LegacyProjectConfig,
+} from '../types/config.js';
+import type { Member, Label, Column } from '../models/index.js';
+import type { ProviderType } from '../providers/provider.js';
+
+const NEW_CONFIG_FILE = '.taskpilot.json';
+const LEGACY_CONFIG_FILE = '.trello-cli.json';
 
 export class Cache {
   private data: ProjectConfig | null = null;
   private cachePath: string;
+  private legacyCachePath: string;
 
   constructor(projectPath: string = process.cwd()) {
-    this.cachePath = path.join(projectPath, '.trello-cli.json');
+    this.cachePath = path.join(projectPath, NEW_CONFIG_FILE);
+    this.legacyCachePath = path.join(projectPath, LEGACY_CONFIG_FILE);
   }
 
   async exists(): Promise<boolean> {
@@ -16,17 +26,97 @@ export class Cache {
       await fs.access(this.cachePath);
       return true;
     } catch {
-      return false;
+      // Check for legacy config
+      try {
+        await fs.access(this.legacyCachePath);
+        return true;
+      } catch {
+        return false;
+      }
     }
   }
 
   async load(): Promise<void> {
+    // Try new config first
     try {
       const content = await fs.readFile(this.cachePath, 'utf-8');
       this.data = JSON.parse(content);
+      return;
     } catch {
-      this.data = null;
+      // Try legacy config
+      try {
+        const content = await fs.readFile(this.legacyCachePath, 'utf-8');
+        const legacyData = JSON.parse(content) as LegacyProjectConfig;
+        this.data = this.migrateLegacyConfig(legacyData);
+        // Auto-save in new format
+        await this.save();
+      } catch {
+        this.data = null;
+      }
     }
+  }
+
+  private migrateLegacyConfig(legacy: LegacyProjectConfig): ProjectConfig {
+    // Convert lists to columns
+    const columns: Record<string, Column> = {};
+    for (const [key, list] of Object.entries(legacy.lists || {})) {
+      columns[key] = {
+        id: list.id,
+        name: list.name,
+        position: list.pos,
+        closed: list.closed,
+        _raw: list,
+      };
+    }
+
+    // Convert members
+    const members: Record<string, Member> = {};
+    for (const [key, m] of Object.entries(legacy.members || {})) {
+      const member = m as { id: string; username: string; fullName: string; avatarUrl?: string; email?: string };
+      members[key] = {
+        id: member.id,
+        username: member.username,
+        displayName: member.fullName,
+        avatarUrl: member.avatarUrl || null,
+        email: member.email,
+        _raw: member,
+      };
+    }
+
+    // Convert labels
+    const labels: Record<string, Label> = {};
+    for (const [key, l] of Object.entries(legacy.labels || {})) {
+      const label = l as { id: string; name: string; color?: string };
+      labels[key] = {
+        id: label.id,
+        name: label.name,
+        color: label.color || null,
+        _raw: label,
+      };
+    }
+
+    // Convert templates
+    const templates: Record<string, TaskTemplate> = {};
+    for (const [key, t] of Object.entries(legacy.templates || {})) {
+      templates[key] = {
+        name: t.name,
+        description: t.description,
+        labels: t.labels,
+        column: t.list,
+      };
+    }
+
+    return {
+      provider: 'trello',
+      boardId: legacy.boardId,
+      boardName: legacy.boardName,
+      currentMemberId: legacy.currentMemberId,
+      members,
+      labels,
+      columns,
+      lastSync: legacy.lastSync,
+      templates: Object.keys(templates).length > 0 ? templates : undefined,
+    };
   }
 
   async save(): Promise<void> {
@@ -40,19 +130,36 @@ export class Cache {
       encoding: 'utf-8',
       mode: 0o600,
     });
+
+    // Remove legacy file if it exists
+    try {
+      await fs.unlink(this.legacyCachePath);
+    } catch {
+      // Ignore if doesn't exist
+    }
   }
 
-  async init(boardId: string, boardName: string, currentMemberId?: string): Promise<void> {
+  async init(
+    provider: ProviderType,
+    boardId: string,
+    boardName: string,
+    currentMemberId?: string
+  ): Promise<void> {
     this.data = {
+      provider,
       boardId,
       boardName,
       currentMemberId,
       members: {},
       labels: {},
-      lists: {},
+      columns: {},
       lastSync: null,
     };
     await this.save();
+  }
+
+  getProvider(): ProviderType {
+    return this.data?.provider ?? 'trello';
   }
 
   getCurrentMemberId(): string | undefined {
@@ -81,6 +188,11 @@ export class Cache {
     return members[username.toLowerCase()];
   }
 
+  getMemberById(memberId: string): Member | undefined {
+    const members = Object.values(this.getMembers());
+    return members.find((m) => m.id === memberId);
+  }
+
   setMembers(members: Member[]): void {
     if (!this.data) return;
 
@@ -100,6 +212,11 @@ export class Cache {
     return labels[name.toLowerCase()];
   }
 
+  getLabelById(labelId: string): Label | undefined {
+    const labels = Object.values(this.getLabels());
+    return labels.find((l) => l.id === labelId);
+  }
+
   setLabels(labels: Label[]): void {
     if (!this.data) return;
 
@@ -112,44 +229,65 @@ export class Cache {
     this.data.labels = indexed;
   }
 
-  getLists(): Record<string, List> {
-    return this.data?.lists || {};
+  getColumns(): Record<string, Column> {
+    return this.data?.columns || {};
   }
 
-  getAllLists(): List[] {
-    const lists = this.getLists();
-    return Object.values(lists).sort((a, b) => a.pos - b.pos);
+  getAllColumns(): Column[] {
+    const columns = this.getColumns();
+    return Object.values(columns).sort((a, b) => a.position - b.position);
   }
 
-  getListByName(name: string): List | undefined {
-    const lists = this.getAllLists();
+  getColumnByName(name: string): Column | undefined {
+    const columns = this.getAllColumns();
     const lowerName = name.toLowerCase();
 
     // Exact match first
-    const exact = lists.find((l) => l.name.toLowerCase() === lowerName);
+    const exact = columns.find((c) => c.name.toLowerCase() === lowerName);
     if (exact) return exact;
 
     // Partial match (starts with)
-    const partial = lists.find((l) => l.name.toLowerCase().startsWith(lowerName));
+    const partial = columns.find((c) => c.name.toLowerCase().startsWith(lowerName));
     if (partial) return partial;
 
     // Contains match
-    return lists.find((l) => l.name.toLowerCase().includes(lowerName));
+    return columns.find((c) => c.name.toLowerCase().includes(lowerName));
   }
 
-  getListById(listId: string): List | undefined {
-    const lists = this.getAllLists();
-    return lists.find((l) => l.id === listId);
+  getColumnById(columnId: string): Column | undefined {
+    const columns = this.getAllColumns();
+    return columns.find((c) => c.id === columnId);
   }
 
-  setAllLists(lists: List[]): void {
+  setColumns(columns: Column[]): void {
     if (!this.data) return;
 
-    const indexed: Record<string, List> = {};
-    for (const list of lists) {
-      indexed[list.id] = list;
+    const indexed: Record<string, Column> = {};
+    for (const column of columns) {
+      indexed[column.id] = column;
     }
-    this.data.lists = indexed;
+    this.data.columns = indexed;
+  }
+
+  // Aliases for backwards compatibility (List -> Column)
+  getLists(): Record<string, Column> {
+    return this.getColumns();
+  }
+
+  getAllLists(): Column[] {
+    return this.getAllColumns();
+  }
+
+  getListByName(name: string): Column | undefined {
+    return this.getColumnByName(name);
+  }
+
+  getListById(listId: string): Column | undefined {
+    return this.getColumnById(listId);
+  }
+
+  setAllLists(lists: Column[]): void {
+    this.setColumns(lists);
   }
 
   updateSyncTime(): void {
@@ -177,15 +315,15 @@ export class Cache {
     return this.data;
   }
 
-  getTemplates(): Record<string, CardTemplate> {
+  getTemplates(): Record<string, TaskTemplate> {
     return this.data?.templates || {};
   }
 
-  getTemplate(name: string): CardTemplate | undefined {
+  getTemplate(name: string): TaskTemplate | undefined {
     return this.data?.templates?.[name];
   }
 
-  async saveTemplate(name: string, template: CardTemplate): Promise<void> {
+  async saveTemplate(name: string, template: TaskTemplate): Promise<void> {
     if (!this.data) return;
 
     if (!this.data.templates) {

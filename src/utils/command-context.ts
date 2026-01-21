@@ -1,11 +1,13 @@
 import { loadCache } from './load-cache.js';
 import { createTrelloClient } from './create-client.js';
-import { getNumberedCards, type NumberedCard } from './display.js';
-import { TrelloError, TrelloValidationError } from './errors.js';
+import { createProvider } from './create-provider.js';
+import { getNumberedTasks, type NumberedTask } from './display.js';
+import { TaskPilotError, TaskPilotValidationError } from './errors.js';
 import { t } from './i18n.js';
 import type { Cache } from '../core/cache.js';
-import type { TrelloClient } from '../api/trello-client.js';
-import type { Card, List } from '../api/types.js';
+import type { TaskProvider } from '../providers/provider.js';
+import type { TrelloClient } from '../providers/trello/client.js';
+import type { Task, Column } from '../models/index.js';
 
 /**
  * Base context for commands that need board access
@@ -13,33 +15,35 @@ import type { Card, List } from '../api/types.js';
 export interface BoardContext {
   cache: Cache;
   client: TrelloClient;
+  provider: TaskProvider;
   boardId: string;
-  lists: List[];
+  lists: Column[];
+  columns: Column[];
 }
 
 /**
- * Extended context for commands that work with cards
+ * Extended context for commands that work with tasks
  */
-export interface CardContext extends BoardContext {
-  allCards: Card[];
-  numberedCards: NumberedCard[];
+export interface TaskContext extends BoardContext {
+  allTasks: Task[];
+  numberedTasks: NumberedTask[];
   memberId: string | undefined;
   isFiltered: boolean;
+  // Backwards compatibility aliases
+  allCards: Task[];
+  numberedCards: NumberedTask[];
 }
 
 /**
- * Options for card context loading
+ * Options for task context loading
  */
-export interface CardContextOptions {
-  /** If true, show all cards regardless of member filter */
+export interface TaskContextOptions {
   all?: boolean;
-  /** If true, include archived cards */
   includeArchived?: boolean;
 }
 
 /**
- * Loads board context (cache, client, boardId, lists)
- * Use for commands that need board-level access but not card operations
+ * Loads board context (cache, client, provider, boardId, columns)
  */
 export async function withBoardContext<T>(
   fn: (ctx: BoardContext) => Promise<T>
@@ -48,101 +52,114 @@ export async function withBoardContext<T>(
   const boardId = cache.getBoardId();
 
   if (!boardId) {
-    throw new TrelloError(t('errors.cacheNotFound'), 'NOT_INITIALIZED');
+    throw new TaskPilotError(t('errors.cacheNotFound'), 'NOT_INITIALIZED');
   }
 
+  const providerType = cache.getProvider();
+  const provider = await createProvider(providerType);
   const client = await createTrelloClient();
-  const lists = cache.getAllLists();
+  const columns = cache.getAllColumns();
 
-  return fn({ cache, client, boardId, lists });
+  return fn({ cache, client, provider, boardId, lists: columns, columns });
 }
 
 /**
- * Loads full card context including numbered cards
- * Use for commands that operate on cards (list, move, delete, etc.)
+ * Loads full task context including numbered tasks
  */
-export async function withCardContext<T>(
-  options: CardContextOptions,
-  fn: (ctx: CardContext) => Promise<T>
+export async function withTaskContext<T>(
+  options: TaskContextOptions,
+  fn: (ctx: TaskContext) => Promise<T>
 ): Promise<T> {
-  return withBoardContext(async ({ cache, client, boardId, lists }) => {
-    const allCards = await client.cards.listByBoard(boardId);
+  return withBoardContext(async ({ cache, client, provider, boardId, columns }) => {
+    const allTasks = await provider.listTasks(boardId);
     const currentMemberId = cache.getCurrentMemberId();
     const memberId = options.all ? undefined : currentMemberId;
     const isFiltered = !options.all && !!currentMemberId;
-    const numberedCards = getNumberedCards(allCards, lists, { memberId });
+    const numberedTasks = getNumberedTasks(allTasks, columns, { memberId });
 
     return fn({
       cache,
       client,
+      provider,
       boardId,
-      lists,
-      allCards,
-      numberedCards,
+      lists: columns,
+      columns,
+      allTasks,
+      numberedTasks,
       memberId,
       isFiltered,
+      // Backwards compatibility aliases
+      allCards: allTasks,
+      numberedCards: numberedTasks,
     });
   });
 }
 
 /**
- * Finds a card by display number with proper error handling
- * @throws TrelloValidationError if card not found or no cards available
+ * Finds a task by display number
  */
-export function findCardByNumber(
-  numberedCards: NumberedCard[],
-  cardNumber: number,
+export function findTaskByNumber(
+  numberedTasks: NumberedTask[],
+  taskNumber: number,
   memberId: string | undefined,
   errorKey: string = 'errors.invalidCard'
-): NumberedCard {
-  if (numberedCards.length === 0) {
+): NumberedTask {
+  if (numberedTasks.length === 0) {
     const message = memberId
       ? t('display.noCardsAvailableAssigned')
       : t('display.noCardsAvailable');
-    throw new TrelloValidationError(message, 'cardNumber');
+    throw new TaskPilotValidationError(message, 'taskNumber');
   }
 
-  const card = numberedCards.find((c) => c.displayNumber === cardNumber);
-  if (!card) {
-    throw new TrelloValidationError(
-      t(errorKey, { max: numberedCards.length }),
-      'cardNumber'
+  const task = numberedTasks.find((t) => t.displayNumber === taskNumber);
+  if (!task) {
+    throw new TaskPilotValidationError(
+      t(errorKey, { max: numberedTasks.length }),
+      'taskNumber'
     );
   }
 
-  return card;
+  return task;
 }
 
 /**
- * Validates that cards are available, throws if empty
+ * Validates that tasks are available
  */
-export function requireCards(
-  numberedCards: NumberedCard[],
+export function requireTasks(
+  numberedTasks: NumberedTask[],
   memberId: string | undefined
 ): void {
-  if (numberedCards.length === 0) {
+  if (numberedTasks.length === 0) {
     const message = memberId
       ? t('display.noCardsAvailableAssigned')
       : t('display.noCardsAvailable');
-    throw new TrelloValidationError(message, 'cards');
+    throw new TaskPilotValidationError(message, 'tasks');
   }
 }
 
 /**
- * Resolves multiple card numbers to cards
- * Returns valid cards and invalid numbers separately
+ * Resolves multiple task numbers to tasks
  */
-export function resolveCardNumbers(
-  numberedCards: NumberedCard[],
-  cardNumbers: string[]
-): { targetCards: NumberedCard[]; invalidNumbers: number[] } {
-  const cardNums = cardNumbers.map((n) => parseInt(n, 10));
-  const cardMap = new Map(numberedCards.map((c) => [c.displayNumber, c]));
+export function resolveTaskNumbers(
+  numberedTasks: NumberedTask[],
+  taskNumbers: string[]
+): { targetTasks: NumberedTask[]; targetCards: NumberedTask[]; invalidNumbers: number[] } {
+  const taskNums = taskNumbers.map((n) => parseInt(n, 10));
+  const taskMap = new Map(numberedTasks.map((t) => [t.displayNumber, t]));
 
-  const invalidNumbers = cardNums.filter((n) => !cardMap.has(n) || isNaN(n));
-  const targetCards = cardNums
-    .map((n) => cardMap.get(n))
-    .filter((c): c is NumberedCard => c !== undefined);
+  const invalidNumbers = taskNums.filter((n) => !taskMap.has(n) || isNaN(n));
+  const targetTasks = taskNums
+    .map((n) => taskMap.get(n))
+    .filter((t): t is NumberedTask => t !== undefined);
 
-  return { targetCards, invalidNumbers };
+  return { targetTasks, targetCards: targetTasks, invalidNumbers };
 }
+
+// Backwards compatibility aliases
+export type CardContext = TaskContext;
+export type CardContextOptions = TaskContextOptions;
+export const withCardContext = withTaskContext;
+export const findCardByNumber = findTaskByNumber;
+export const requireCards = requireTasks;
+export const resolveCardNumbers = resolveTaskNumbers;
+export type NumberedCard = NumberedTask;

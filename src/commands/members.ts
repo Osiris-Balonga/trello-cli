@@ -8,6 +8,7 @@ import { handleCommandError } from '../utils/error-handler.js';
 import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
+import { trelloMembersToMembers } from '../utils/compat.js';
 
 export function createMembersCommand(): Command {
   const members = new Command('members');
@@ -36,7 +37,7 @@ export function createMembersCommand(): Command {
           const spinner = ora(t('members.fetching')).start();
           const client = await createTrelloClient();
           const membersList = await client.members.listByBoard(boardId);
-          cache.setMembers(membersList);
+          cache.setMembers(trelloMembersToMembers(membersList));
           cache.updateSyncTime();
           await cache.save();
           spinner.succeed(t('members.refreshed'));

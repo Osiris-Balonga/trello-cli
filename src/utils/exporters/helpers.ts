@@ -10,7 +10,7 @@ export function getLabelNameById(labelId: string, cache: Cache): string {
   const labels = cache.getLabels();
   for (const label of Object.values(labels)) {
     if (label.id === labelId) {
-      return label.name || label.color;
+      return label.name || label.color || 'Unnamed';
     }
   }
   return 'Unknown';

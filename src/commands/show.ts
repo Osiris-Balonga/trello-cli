@@ -22,7 +22,7 @@ function formatDate(dateStr: string | null, tFn: typeof t): string {
 
 function formatLabels(
   labelIds: string[],
-  labelsCache: Record<string, { id: string; color: string }>,
+  labelsCache: Record<string, { id: string; color?: string | null }>,
   tFn: typeof t
 ): string {
   if (labelIds.length === 0) return chalk.gray(tFn('common.none'));
@@ -37,14 +37,14 @@ function formatLabels(
 
 function formatMembers(
   memberIds: string[],
-  membersCache: Record<string, { id: string; fullName: string }>,
+  membersCache: Record<string, { id: string; fullName?: string; displayName?: string }>,
   tFn: typeof t
 ): string {
   if (memberIds.length === 0) return chalk.gray(tFn('common.none'));
 
   const memberNames = Object.entries(membersCache)
     .filter(([, member]) => memberIds.includes(member.id))
-    .map(([username, member]) => `@${username} (${member.fullName})`);
+    .map(([username, member]) => `@${username} (${member.fullName ?? member.displayName ?? username})`);
 
   if (memberNames.length === 0) return chalk.gray(tFn('common.none'));
   return memberNames.join(', ');
