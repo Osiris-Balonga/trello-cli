@@ -1,8 +1,7 @@
 import { Command } from 'commander';
 import ora from 'ora';
 import chalk from 'chalk';
-import { loadCache } from '../utils/load-cache.js';
-import { createTrelloClient } from '../utils/create-client.js';
+import { withBoardContext } from '../utils/command-context.js';
 import { handleCommandError } from '../utils/error-handler.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
@@ -42,77 +41,71 @@ async function handleSearch(
   const spinner = ora(t('search.searching')).start();
 
   try {
-    const cache = await loadCache();
-    const client = await createTrelloClient();
-    const boardId = cache.getBoardId();
+    await withBoardContext(async ({ cache, client, boardId, lists }) => {
+      const cards = await client.cards.listByBoard(boardId);
+      const queryLower = query.toLowerCase();
 
-    if (!boardId) {
-      spinner.fail();
-      logger.print(chalk.red(t('errors.cacheNotFound')));
-      return;
-    }
+      const members = cache.getMembers();
+      const labels = cache.getLabels();
 
-    const cards = await client.cards.listByBoard(boardId);
-    const queryLower = query.toLowerCase();
+      const filtered = cards.filter((card) => {
+        // Text search
+        const inTitle = card.name.toLowerCase().includes(queryLower);
+        const inDesc = card.desc.toLowerCase().includes(queryLower);
 
-    const members = cache.getMembers();
-    const labels = cache.getLabels();
-    const lists = cache.getAllLists();
+        if (options.inTitle && !inTitle) { return false; }
+        if (options.inDesc && !inDesc) { return false; }
+        if (!options.inTitle && !options.inDesc && !inTitle && !inDesc) {
+          return false;
+        }
 
-    const filtered = cards.filter((card) => {
-      // Text search
-      const inTitle = card.name.toLowerCase().includes(queryLower);
-      const inDesc = card.desc.toLowerCase().includes(queryLower);
+        // Label filter
+        if (options.labels) {
+          const labelNames = options.labels
+            .split(',')
+            .map((l) => l.trim().toLowerCase());
+          const cardLabelIds = card.idLabels;
+          const hasLabel = labelNames.some((name) => {
+            const label = labels[name];
+            return label && cardLabelIds.includes(label.id);
+          });
+          if (!hasLabel) return false;
+        }
 
-      if (options.inTitle && !inTitle) return false;
-      if (options.inDesc && !inDesc) return false;
-      if (!options.inTitle && !options.inDesc && !inTitle && !inDesc)
-        return false;
+        // Member filter
+        if (options.members) {
+          const memberNames = options.members
+            .split(',')
+            .map((m) => m.replace('@', '').trim().toLowerCase());
+          const cardMemberIds = card.idMembers;
+          const hasMember = memberNames.some((name) => {
+            const member = members[name];
+            return member && cardMemberIds.includes(member.id);
+          });
+          if (!hasMember) return false;
+        }
 
-      // Label filter
-      if (options.labels) {
-        const labelNames = options.labels
-          .split(',')
-          .map((l) => l.trim().toLowerCase());
-        const cardLabelIds = card.idLabels;
-        const hasLabel = labelNames.some((name) => {
-          const label = labels[name];
-          return label && cardLabelIds.includes(label.id);
-        });
-        if (!hasLabel) return false;
+        // List filter
+        if (options.list) {
+          const list = cache.getListByName(options.list);
+          if (!list || card.idList !== list.id) return false;
+        }
+
+        return true;
+      });
+
+      spinner.stop();
+
+      if (filtered.length === 0) {
+        logger.print(chalk.yellow(t('search.noResults', { query })));
+        return;
       }
 
-      // Member filter
-      if (options.members) {
-        const memberNames = options.members
-          .split(',')
-          .map((m) => m.replace('@', '').trim().toLowerCase());
-        const cardMemberIds = card.idMembers;
-        const hasMember = memberNames.some((name) => {
-          const member = members[name];
-          return member && cardMemberIds.includes(member.id);
-        });
-        if (!hasMember) return false;
-      }
-
-      // List filter
-      if (options.list) {
-        const list = cache.getListByName(options.list);
-        if (!list || card.idList !== list.id) return false;
-      }
-
-      return true;
+      logger.print(
+        chalk.green(t('search.found', { count: filtered.length, query }))
+      );
+      displayFilteredCards(filtered, lists, cache);
     });
-
-    spinner.stop();
-
-    if (filtered.length === 0) {
-      logger.print(chalk.yellow(t('search.noResults', { query })));
-      return;
-    }
-
-    logger.print(chalk.green(t('search.found', { count: filtered.length, query })));
-    displayFilteredCards(filtered, lists, cache);
   } catch (error) {
     spinner.fail(t('search.failed'));
     handleCommandError(error);
@@ -155,7 +148,9 @@ function displayFilteredCards(
         let dueStr = dueDate.toLocaleDateString();
 
         if (dueDate < now) {
-          dueStr = chalk.red(`${t('search.due')} ${dueStr} (${t('search.overdue')})`);
+          dueStr = chalk.red(
+            `${t('search.due')} ${dueStr} (${t('search.overdue')})`
+          );
         } else if (dueDate.toDateString() === now.toDateString()) {
           dueStr = chalk.yellow(`${t('search.due')} ${t('search.today')}`);
         } else {

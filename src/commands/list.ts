@@ -1,11 +1,9 @@
 import { Command } from 'commander';
 import ora from 'ora';
 import chalk from 'chalk';
-import { loadCache } from '../utils/load-cache.js';
-import { createTrelloClient } from '../utils/create-client.js';
+import { withBoardContext } from '../utils/command-context.js';
 import { displayCardsByList } from '../utils/display.js';
 import { handleCommandError } from '../utils/error-handler.js';
-import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
 
@@ -23,29 +21,26 @@ export function createListCommand(): Command {
       const spinner = ora(t('list.loading')).start();
 
       try {
-        const cache = await loadCache();
-        const client = await createTrelloClient();
-        const boardId = cache.getBoardId();
+        await withBoardContext(async ({ cache, client, boardId, lists }) => {
+          const cards = await client.cards.listByBoard(boardId);
+          const currentMemberId = cache.getCurrentMemberId();
 
-        if (!boardId) {
-          throw new TrelloError(t('list.errors.boardNotFound'), 'INVALID_CACHE');
-        }
+          spinner.succeed(t('list.loaded'));
 
-        const cards = await client.cards.listByBoard(boardId);
-        const lists = cache.getAllLists();
-        const currentMemberId = cache.getCurrentMemberId();
+          logger.print(chalk.bold(`\n${cache.getBoardName()}`));
 
-        spinner.succeed(t('list.loaded'));
-
-        logger.print(chalk.bold(`\n${cache.getBoardName()}`));
-
-        if (options.all) {
-          displayCardsByList(cards, lists, { cache, isFiltered: false });
-        } else if (currentMemberId) {
-          displayCardsByList(cards, lists, { memberId: currentMemberId, cache, isFiltered: true });
-        } else {
-          displayCardsByList(cards, lists, { cache, isFiltered: false });
-        }
+          if (options.all) {
+            displayCardsByList(cards, lists, { cache, isFiltered: false });
+          } else if (currentMemberId) {
+            displayCardsByList(cards, lists, {
+              memberId: currentMemberId,
+              cache,
+              isFiltered: true,
+            });
+          } else {
+            displayCardsByList(cards, lists, { cache, isFiltered: false });
+          }
+        });
       } catch (error) {
         spinner.fail(t('list.failed'));
         handleCommandError(error);

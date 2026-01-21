@@ -1,10 +1,9 @@
 import { Command } from 'commander';
 import ora from 'ora';
 import { writeFile } from 'fs/promises';
-import { loadCache } from '../utils/load-cache.js';
-import { createTrelloClient } from '../utils/create-client.js';
+import { withBoardContext } from '../utils/command-context.js';
 import { handleCommandError } from '../utils/error-handler.js';
-import { TrelloError, TrelloValidationError } from '../utils/errors.js';
+import { TrelloValidationError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
 import {
@@ -49,53 +48,53 @@ async function handleExport(
       );
     }
 
-    const cache = await loadCache();
-    const boardId = cache.getBoardId();
-
-    if (!boardId) {
-      throw new TrelloError(t('errors.cacheNotFound'), 'NOT_INITIALIZED');
-    }
-
     const spinner = ora(t('export.exporting')).start();
-    const client = await createTrelloClient();
 
-    let cards = await client.cards.listByBoard(boardId);
+    await withBoardContext(async ({ cache, client, boardId }) => {
+      let cards = await client.cards.listByBoard(boardId);
 
-    if (options.list) {
-      const list = cache.getListByName(options.list);
-      if (!list) {
-        const availableLists = cache.getAllLists().map((l) => l.name).join(', ');
-        spinner.fail(t('export.invalidList', { list: options.list }) + ` (${t('common.available')}: ${availableLists})`);
-        return;
+      if (options.list) {
+        const list = cache.getListByName(options.list);
+        if (!list) {
+          const availableLists = cache
+            .getAllLists()
+            .map((l) => l.name)
+            .join(', ');
+          spinner.fail(
+            t('export.invalidList', { list: options.list }) +
+              ` (${t('common.available')}: ${availableLists})`
+          );
+          return;
+        }
+        cards = cards.filter((card) => card.idList === list.id);
       }
-      cards = cards.filter((card) => card.idList === list.id);
-    }
 
-    let content: string;
-    switch (format) {
-      case 'json':
-        content = exportToJson(cards, cache);
-        break;
-      case 'csv':
-        content = exportToCsv(cards, cache);
-        break;
-      case 'md':
-        content = exportToMarkdown(cards, cache);
-        break;
-      case 'html':
-        content = exportToHtml(cards, cache);
-        break;
-      default:
-        throw new Error(`Unsupported format: ${format}`);
-    }
+      let content: string;
+      switch (format) {
+        case 'json':
+          content = exportToJson(cards, cache);
+          break;
+        case 'csv':
+          content = exportToCsv(cards, cache);
+          break;
+        case 'md':
+          content = exportToMarkdown(cards, cache);
+          break;
+        case 'html':
+          content = exportToHtml(cards, cache);
+          break;
+        default:
+          throw new Error(`Unsupported format: ${format}`);
+      }
 
-    if (options.output) {
-      await writeFile(options.output, content, 'utf-8');
-      spinner.succeed(t('export.success', { file: options.output }));
-    } else {
-      spinner.stop();
-      logger.print(content);
-    }
+      if (options.output) {
+        await writeFile(options.output, content, 'utf-8');
+        spinner.succeed(t('export.success', { file: options.output }));
+      } else {
+        spinner.stop();
+        logger.print(content);
+      }
+    });
   } catch (error) {
     handleCommandError(error);
   }

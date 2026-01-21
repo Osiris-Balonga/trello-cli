@@ -1,10 +1,8 @@
 import { Command } from 'commander';
 import ora from 'ora';
 import chalk from 'chalk';
-import { loadCache } from '../utils/load-cache.js';
-import { createTrelloClient } from '../utils/create-client.js';
+import { withBoardContext } from '../utils/command-context.js';
 import { handleCommandError } from '../utils/error-handler.js';
-import { TrelloError } from '../utils/errors.js';
 import { t } from '../utils/i18n.js';
 import { logger } from '../utils/logger.js';
 import { calculateStats, type BoardStats } from '../utils/statistics.js';
@@ -31,48 +29,45 @@ export function createStatsCommand(): Command {
 
 async function handleStats(options: StatsOptions): Promise<void> {
   try {
-    const cache = await loadCache();
-    const boardId = cache.getBoardId();
-
-    if (!boardId) {
-      throw new TrelloError(t('errors.cacheNotFound'), 'NOT_INITIALIZED');
-    }
-
     const spinner = ora(t('stats.loading')).start();
-    const client = await createTrelloClient();
-    const periodDays = parseInt(options.period || '30', 10);
 
-    const cards = await client.cards.listByBoard(boardId);
-    const actions = await client.boards.getActions(boardId, {
-      filter: 'createCard,updateCard:closed,updateCard:idList',
-      limit: 1000,
-    });
+    await withBoardContext(async ({ cache, client, boardId }) => {
+      const periodDays = parseInt(options.period || '30', 10);
 
-    spinner.stop();
+      const cards = await client.cards.listByBoard(boardId);
+      const actions = await client.boards.getActions(boardId, {
+        filter: 'createCard,updateCard:closed,updateCard:idList',
+        limit: 1000,
+      });
 
-    let filteredCards = cards;
-    let memberId: string | undefined;
-    if (options.member) {
-      const username = options.member.replace('@', '');
-      const member = cache.getMemberByUsername(username);
-      if (!member) {
-        logger.print(chalk.red(t('stats.memberNotFound', { username })));
-        return;
+      spinner.stop();
+
+      let filteredCards = cards;
+      let memberId: string | undefined;
+      if (options.member) {
+        const username = options.member.replace('@', '');
+        const member = cache.getMemberByUsername(username);
+        if (!member) {
+          logger.print(chalk.red(t('stats.memberNotFound', { username })));
+          return;
+        }
+        memberId = member.id;
+        const memberIdForFilter = memberId;
+        filteredCards = cards.filter((c) =>
+          c.idMembers.includes(memberIdForFilter)
+        );
       }
-      memberId = member.id;
-      const memberIdForFilter = memberId;
-      filteredCards = cards.filter((c) => c.idMembers.includes(memberIdForFilter));
-    }
 
-    const stats = calculateStats(
-      filteredCards,
-      actions,
-      cache,
-      periodDays,
-      memberId
-    );
+      const stats = calculateStats(
+        filteredCards,
+        actions,
+        cache,
+        periodDays,
+        memberId
+      );
 
-    displayStats(stats, cache, options, periodDays);
+      displayStats(stats, cache, options, periodDays);
+    });
   } catch (error) {
     handleCommandError(error);
   }
@@ -90,7 +85,9 @@ function displayStats(
   logger.print(chalk.gray(t('stats.period', { days: period })));
   if (options.member) {
     logger.print(
-      chalk.gray(t('stats.member', { member: options.member.replace('@', '') }))
+      chalk.gray(
+        t('stats.member', { member: options.member.replace('@', '') })
+      )
     );
   }
 
@@ -146,6 +143,8 @@ function displayStats(
     logger.print(
       `${stats.trends.productivityChange >= 0 ? '📈' : '📉'} ${prodSign}${stats.trends.productivityChange}% ${t('stats.productivityVsLastPeriod')}`
     );
-    logger.print(`✅ ${stats.trends.completionRate}% ${t('stats.completionRate')}`);
+    logger.print(
+      `✅ ${stats.trends.completionRate}% ${t('stats.completionRate')}`
+    );
   }
 }
