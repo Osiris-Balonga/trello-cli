@@ -90,3 +90,12 @@ export const TrelloAuthError = TaskPilotAuthError;
 export const TrelloNotFoundError = TaskPilotNotFoundError;
 export const TrelloValidationError = TaskPilotValidationError;
 export const TrelloRateLimitError = TaskPilotRateLimitError;
+
+// GitHub provider aliases
+export const GitHubError = TaskPilotError;
+export const GitHubNetworkError = TaskPilotNetworkError;
+export const GitHubAPIError = TaskPilotAPIError;
+export const GitHubAuthError = TaskPilotAuthError;
+export const GitHubNotFoundError = TaskPilotNotFoundError;
+export const GitHubValidationError = TaskPilotValidationError;
+export const GitHubRateLimitError = TaskPilotRateLimitError;

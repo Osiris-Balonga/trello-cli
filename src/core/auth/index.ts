@@ -13,3 +13,11 @@ export {
   type OAuthScope,
   type OAuthExpiration,
 } from './constants.js';
+
+export {
+  validateGitHubToken,
+  requestDeviceCode,
+  pollForAccessToken,
+  GITHUB_CLIENT_ID,
+  GITHUB_TOKEN_REGEX,
+} from './github.js';

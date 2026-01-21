@@ -38,6 +38,13 @@ export interface TaskTemplate {
   list?: string;
 }
 
+export interface GitHubColumnConfig {
+  id: string;
+  name: string;
+  labelName: string | null;
+  isClosedState: boolean;
+}
+
 export interface ProjectConfig {
   provider: ProviderType;
   boardId: string;
@@ -48,6 +55,8 @@ export interface ProjectConfig {
   columns: Record<string, Column>;
   lastSync: string | null;
   templates?: Record<string, TaskTemplate>;
+  // GitHub-specific config
+  githubColumnConfigs?: GitHubColumnConfig[];
 }
 
 // Legacy types for migration

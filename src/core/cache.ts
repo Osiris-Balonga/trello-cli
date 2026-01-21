@@ -4,6 +4,7 @@ import type {
   ProjectConfig,
   TaskTemplate,
   LegacyProjectConfig,
+  GitHubColumnConfig,
 } from '../types/config.js';
 import type { Member, Label, Column } from '../models/index.js';
 import type { ProviderType } from '../providers/provider.js';
@@ -338,5 +339,26 @@ export class Cache {
 
     delete this.data.templates[name];
     await this.save();
+  }
+
+  // GitHub-specific methods
+  getGitHubColumnConfigs(): GitHubColumnConfig[] {
+    return this.data?.githubColumnConfigs || [];
+  }
+
+  setGitHubColumnConfigs(configs: GitHubColumnConfig[]): void {
+    if (!this.data) return;
+    this.data.githubColumnConfigs = configs;
+  }
+
+  getGitHubColumnConfigById(id: string): GitHubColumnConfig | undefined {
+    const configs = this.getGitHubColumnConfigs();
+    return configs.find((c) => c.id === id);
+  }
+
+  getGitHubColumnConfigByName(name: string): GitHubColumnConfig | undefined {
+    const configs = this.getGitHubColumnConfigs();
+    const lowerName = name.toLowerCase();
+    return configs.find((c) => c.name.toLowerCase() === lowerName);
   }
 }

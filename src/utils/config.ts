@@ -1,11 +1,17 @@
 import Conf from 'conf';
 import { secureStore } from './secure-store.js';
 
+export type TrelloAuthMode = 'apikey' | 'oauth';
+export type GitHubAuthMode = 'pat' | 'oauth';
+
 interface PublicConfig {
   language: string;
-  authMode: 'apikey' | 'oauth';
+  authMode: TrelloAuthMode;
   apiKeyConfigured: boolean;
   oauthConfigured: boolean;
+  githubAuthMode: GitHubAuthMode;
+  githubPatConfigured: boolean;
+  githubOauthConfigured: boolean;
 }
 
 class ConfigManager {
@@ -19,6 +25,9 @@ class ConfigManager {
         authMode: 'apikey',
         apiKeyConfigured: false,
         oauthConfigured: false,
+        githubAuthMode: 'pat',
+        githubPatConfigured: false,
+        githubOauthConfigured: false,
       },
     });
   }
@@ -111,10 +120,91 @@ class ConfigManager {
     await secureStore.clearAll();
     this.store.set('apiKeyConfigured', false);
     this.store.set('oauthConfigured', false);
+    this.store.set('githubPatConfigured', false);
+    this.store.set('githubOauthConfigured', false);
   }
 
   getPath(): string {
     return this.store.path;
+  }
+
+  // GitHub authentication methods
+
+  getGitHubAuthMode(): GitHubAuthMode {
+    return this.store.get('githubAuthMode', 'pat');
+  }
+
+  setGitHubAuthMode(mode: GitHubAuthMode): void {
+    this.store.set('githubAuthMode', mode);
+  }
+
+  async getGitHubPatAuth(): Promise<{ token: string } | null> {
+    if (!this.store.get('githubPatConfigured')) {
+      return null;
+    }
+
+    const token = await secureStore.getCredential('githubPatToken');
+
+    if (!token) {
+      this.store.set('githubPatConfigured', false);
+      return null;
+    }
+
+    return { token };
+  }
+
+  async setGitHubPatAuth(token: string): Promise<void> {
+    await secureStore.setCredential('githubPatToken', token);
+    this.store.set('githubPatConfigured', true);
+    this.store.set('githubAuthMode', 'pat');
+  }
+
+  async getGitHubOAuthAuth(): Promise<{ token: string } | null> {
+    if (!this.store.get('githubOauthConfigured')) {
+      return null;
+    }
+
+    const token = await secureStore.getCredential('githubOauthToken');
+
+    if (!token) {
+      this.store.set('githubOauthConfigured', false);
+      return null;
+    }
+
+    return { token };
+  }
+
+  async setGitHubOAuthAuth(token: string): Promise<void> {
+    await secureStore.setCredential('githubOauthToken', token);
+    this.store.set('githubOauthConfigured', true);
+    this.store.set('githubAuthMode', 'oauth');
+  }
+
+  async isGitHubAuthenticated(): Promise<boolean> {
+    const mode = this.getGitHubAuthMode();
+    if (mode === 'pat') {
+      return (await this.getGitHubPatAuth()) !== null;
+    } else {
+      return (await this.getGitHubOAuthAuth()) !== null;
+    }
+  }
+
+  async getGitHubAuth(): Promise<{ token: string; type: GitHubAuthMode } | null> {
+    const mode = this.getGitHubAuthMode();
+    if (mode === 'pat') {
+      const auth = await this.getGitHubPatAuth();
+      return auth ? { token: auth.token, type: 'pat' } : null;
+    } else {
+      const auth = await this.getGitHubOAuthAuth();
+      return auth ? { token: auth.token, type: 'oauth' } : null;
+    }
+  }
+
+  async clearGitHubAuth(): Promise<void> {
+    await secureStore.deleteCredential('githubPatToken');
+    await secureStore.deleteCredential('githubOauthToken');
+    this.store.set('githubPatConfigured', false);
+    this.store.set('githubOauthConfigured', false);
   }
 }
 
